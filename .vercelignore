@@ -1,0 +1,9 @@
+.env*
+!.env.example
+.next/
+node_modules/
+.playwright-cli/
+dev-server*.log
+prod-server*.log
+.agents/
+.codex/
