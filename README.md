@@ -20,7 +20,7 @@ This app does not execute purchases, connect wallets, sign transactions, or expo
 ## Quick Start
 
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/ariefzzz5421/nft-analytic-dashboard.git
 cd nft-analytic-dashboard
 npm install
 cp .env.example .env.local
