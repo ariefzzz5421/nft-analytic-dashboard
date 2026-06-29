@@ -3,7 +3,7 @@ import { getEthUsdFallback } from "@/lib/opensea";
 import { OPENSEA_REFRESH_POLICY } from "@/lib/refresh";
 
 export const metadata: Metadata = {
-  title: "Settings | NFT Analytic Dashboard",
+  title: "Settings | NFT Sweep Depth",
 };
 
 export const dynamic = "force-dynamic";

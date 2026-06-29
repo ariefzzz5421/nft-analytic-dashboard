@@ -1,6 +1,6 @@
-# NFT Analytic Dashboard
+# NFT Sweep Depth
 
-Read-only NFT analytics dashboard for estimating how much ETH/USD is needed to sweep active OpenSea listings below selected target floor prices.
+Read-only NFT analytics dashboard for estimating sweep cost to target floors.
 
 This app does not execute purchases, connect wallets, sign transactions, or expose API keys in frontend code. OpenSea and Etherscan calls run through server-side API routes only.
 
@@ -9,8 +9,10 @@ This app does not execute purchases, connect wallets, sign transactions, or expo
 - Local browser watchlist with collection notes, target floors, and tracked wallet labels.
 - Dashboard overview with watchlist cards and global risk summaries.
 - Collection detail route at `/collection/[slug]`.
-- Sweep ladder, sweep cost chart, listing distribution chart, bid support card, and sanity warnings.
-- Custom target floors and target-floor range filtering.
+- Smart target floors generated from the current floor.
+- Sweep ladder, next meaningful target card, sweep cost chart, listing distribution chart, bid support card, and compact risk warnings.
+- Custom target floors, range builder, and target-floor range filtering.
+- Collection activity table with sales, transfers, mints, listings, offers, tx hashes, order hashes, OpenSea links, and Etherscan links.
 - Manual creator/dev/treasury wallet tracking per collection.
 - Wallet API route at `/api/wallet/[address]` using Etherscan when `ETHERSCAN_API_KEY` is configured.
 - BTC, ETH, HYPE, BNB, and SOL running price ticker from backend route `/api/market/prices`.
@@ -57,6 +59,7 @@ Do not add `NEXT_PUBLIC_OPENSEA_API_KEY`, `NEXT_PUBLIC_ETHERSCAN_API_KEY`, or an
 - `/wallets` - tracked wallet overview
 - `/settings` - API status and deployment notes
 - `/api/sweep/[slug]` - server-side OpenSea sweep analytics
+- `/api/activity/[slug]` - server-side OpenSea collection activity
 - `/api/wallet/[address]` - server-side Etherscan wallet analytics
 - `/api/market/prices` - server-side market price feed
 - `/api/watchlist` - placeholder for future database-backed watchlist
@@ -70,6 +73,22 @@ Do not add `NEXT_PUBLIC_OPENSEA_API_KEY`, `NEXT_PUBLIC_ETHERSCAN_API_KEY`, or an
 - `GET https://api.opensea.io/api/v2/collections/{slug}/stats`
 - `GET https://api.opensea.io/api/v2/listings/collection/{slug}/all?limit=200`
 - `GET https://api.opensea.io/api/v2/offers/collection/{slug}/all?limit=200`
+
+Sweep targets are generated dynamically from the current floor. Targets less than or equal to the current floor are skipped.
+
+`GET /api/activity/[slug]` uses OpenSea events server-side:
+
+- `GET https://api.opensea.io/api/v2/events/collection/{slug}`
+
+Supported query params:
+
+- `event_type`
+- `limit`
+- `after`
+- `before`
+- `next`
+
+Activity rows normalize sales, transfers, mints, listings, offers, tx hashes, and order hashes defensively because OpenSea fields can differ by event type.
 
 `GET /api/wallet/[address]` uses Etherscan API server-side:
 

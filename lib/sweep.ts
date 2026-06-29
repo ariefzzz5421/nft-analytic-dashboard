@@ -18,6 +18,42 @@ function round(value: number, decimals: number) {
   return Number(value.toFixed(decimals));
 }
 
+export function generateSmartTargets(currentFloor: number): number[] {
+  if (!Number.isFinite(currentFloor) || currentFloor <= 0) {
+    return DEFAULT_TARGET_FLOORS;
+  }
+
+  let targets: number[];
+
+  if (currentFloor < 0.0005) {
+    targets = [0.0005, 0.001, 0.002, 0.005, 0.01];
+  } else if (currentFloor < 0.001) {
+    targets = [0.001, 0.002, 0.005, 0.01];
+  } else if (currentFloor < 0.005) {
+    targets = [0.005, 0.01, 0.02, 0.05];
+  } else if (currentFloor < 0.01) {
+    targets = [0.01, 0.02, 0.03, 0.05];
+  } else if (currentFloor < 0.05) {
+    targets = [0.02, 0.03, 0.05, 0.075];
+  } else if (currentFloor < 0.1) {
+    targets = [0.075, 0.1];
+  } else {
+    const nextTenth = Math.floor(currentFloor * 10) / 10 + 0.1;
+    targets = Array.from({ length: 5 }, (_, index) => round(nextTenth + index * 0.1, 4));
+  }
+
+  return targets.filter((target) => target > currentFloor);
+}
+
+export function sanitizeTargets(targets: number[], currentFloor: number | null | undefined) {
+  return [...new Set(targets)]
+    .filter((target) => Number.isFinite(target) && target > 0)
+    .filter((target) => {
+      return currentFloor === null || currentFloor === undefined || target > currentFloor;
+    })
+    .sort((left, right) => left - right);
+}
+
 export function dedupeCheapestPerToken(listings: NormalizedListing[]) {
   const cheapest = new Map<string, NormalizedListing>();
 
@@ -36,10 +72,9 @@ export function calculateSweepLadder(
   listings: NormalizedListing[],
   targets: number[],
   ethUsd: number,
+  currentFloor?: number | null,
 ): SweepLadderRow[] {
-  const sortedTargets = [...new Set(targets)]
-    .filter((target) => Number.isFinite(target) && target > 0)
-    .sort((left, right) => left - right);
+  const sortedTargets = sanitizeTargets(targets, currentFloor);
 
   return sortedTargets.map((targetFloor) => {
     const listingsBelowTarget = listings.filter((listing) => listing.priceEth < targetFloor);
@@ -200,6 +235,21 @@ export function buildRiskSummary({
       : listings
           .filter((listing) => listing.priceEth < target2xFloor)
           .reduce((total, listing) => total + listing.priceEth, 0);
+  const warnings = [...WARNINGS];
+
+  if (isSuspiciousOffer(topOffer, floor)) {
+    warnings.push(
+      "Top offer is unusually higher than floor. Verify currency parsing before trusting bid support.",
+    );
+  }
+
+  if (bidFloorRatio !== null && bidFloorRatio < 0.5) {
+    warnings.push("Bid/floor ratio is below 0.5. Exit liquidity may be weak.");
+  }
+
+  if (listedPercentage !== null && listedPercentage >= 20) {
+    warnings.push("Listed percentage is high. Floor movement may require heavy capital.");
+  }
 
   return {
     bidFloorRatio,
@@ -210,6 +260,6 @@ export function buildRiskSummary({
       costTo2xFloor,
       listedPercentage,
     }),
-    warnings: WARNINGS,
+    warnings,
   };
 }

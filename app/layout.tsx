@@ -3,7 +3,7 @@ import { AppNav } from "@/components/AppNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "NFT Analytic Dashboard",
+  title: "NFT Sweep Depth",
   description:
     "Read-only NFT analytics dashboard for estimating sweep depth and orderbook cost.",
   icons: {

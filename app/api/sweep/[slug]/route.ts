@@ -15,7 +15,7 @@ import {
   calculateListingDistribution,
   calculateSweepLadder,
   dedupeCheapestPerToken,
-  DEFAULT_TARGET_FLOORS,
+  generateSmartTargets,
   isSuspiciousOffer,
 } from "@/lib/sweep";
 import type { CollectionSummaryData, SweepApiResponse } from "@/lib/types";
@@ -179,6 +179,7 @@ function findStatsFloor(statsPayload: unknown) {
 function buildSanityWarnings({
   floor,
   floorFromListings,
+  listedPercentage,
   listingsCount,
   normalizedOfferCount,
   rawOfferCount,
@@ -187,6 +188,7 @@ function buildSanityWarnings({
 }: {
   floor: number | null;
   floorFromListings: number | null;
+  listedPercentage: number | null;
   listingsCount: number;
   normalizedOfferCount: number;
   rawOfferCount: number;
@@ -201,12 +203,23 @@ function buildSanityWarnings({
     );
   }
 
+  if (topOffer !== null && floor !== null && floor > 0 && topOffer / floor < 0.5) {
+    warnings.push("Bid/floor ratio is below 0.5. Floor may have weak exit liquidity.");
+  }
+
   if (floor === null) {
     warnings.push("OpenSea floor is missing. Use listing-derived depth carefully.");
   }
 
   if (listingsCount === 0) {
     warnings.push("No active ETH/WETH listings found.");
+  }
+
+  if (
+    (listedPercentage !== null && listedPercentage >= 20) ||
+    (listedPercentage === null && listingsCount >= 1000)
+  ) {
+    warnings.push("Listing count is high. Sweeping may need more capital than the headline floor implies.");
   }
 
   if (rawOfferCount > 0 && normalizedOfferCount === 0) {
@@ -287,7 +300,13 @@ export async function GET(_request: Request, context: RouteContext) {
       floor: statsFloor ?? floorFromListings,
     };
     const ethUsd = getEthUsdFallback();
-    const sweepLadder = calculateSweepLadder(listings, DEFAULT_TARGET_FLOORS, ethUsd);
+    const smartTargets = generateSmartTargets(collectionWithFloor.floor ?? 0);
+    const sweepLadder = calculateSweepLadder(
+      listings,
+      smartTargets,
+      ethUsd,
+      collectionWithFloor.floor,
+    );
     const response: SweepApiResponse = {
       collection: collectionWithFloor,
       ethUsd,
@@ -304,6 +323,7 @@ export async function GET(_request: Request, context: RouteContext) {
       sanityWarnings: buildSanityWarnings({
         floor: collectionWithFloor.floor,
         floorFromListings,
+        listedPercentage: collectionWithFloor.listedPercentage,
         listingsCount: listings.length,
         normalizedOfferCount: normalizedOfferPrices.length,
         rawOfferCount: rawOffers.length,

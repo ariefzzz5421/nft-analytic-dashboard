@@ -40,7 +40,7 @@ function PricePill({ asset }: { asset: MarketAssetPrice }) {
   const hasPrice = asset.priceUsd > 0;
 
   return (
-    <div className="inline-flex items-center gap-2 whitespace-nowrap rounded-md border border-cyan-400/10 bg-slate-950/80 px-3 py-1.5 shadow-[0_0_18px_rgba(34,211,238,0.04)]">
+    <div className="inline-flex items-center gap-2 whitespace-nowrap rounded border border-slate-800 bg-slate-950/60 px-2.5 py-1">
       <span className="font-semibold text-slate-100">{asset.symbol}</span>
       <span className="font-mono text-cyan-100 tabular-nums">
         {hasPrice ? <AnimatedNumber value={asset.priceUsd} /> : "Unavailable"}
@@ -91,9 +91,9 @@ export function MarketTicker() {
     : "BTC/ETH/HYPE/BNB/SOL";
 
   return (
-    <div className="border-t border-slate-900/90 bg-slate-950/90">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 overflow-hidden px-4 py-2 sm:px-6 lg:px-8">
-        <div className="inline-flex shrink-0 items-center gap-2 text-xs uppercase tracking-[0.16em] text-slate-500">
+    <div className="border-t border-slate-900/80 bg-slate-950/70">
+      <div className="mx-auto flex max-w-7xl items-center gap-3 overflow-hidden px-4 py-1.5 sm:px-6 lg:px-8">
+        <div className="inline-flex shrink-0 items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-slate-600">
           <Activity size={14} aria-hidden="true" />
           Market
         </div>
@@ -112,7 +112,7 @@ export function MarketTicker() {
           </div>
         </div>
         {prices ? (
-          <span className="hidden shrink-0 text-xs text-slate-500 sm:inline">
+          <span className="hidden shrink-0 text-[11px] text-slate-600 lg:inline">
             source: {prices.source}
           </span>
         ) : null}

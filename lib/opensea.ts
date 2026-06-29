@@ -135,6 +135,12 @@ export async function fetchAllCollectionOffers(slug: string) {
   return offers;
 }
 
+export async function fetchCollectionEvents(slug: string, params: URLSearchParams) {
+  return fetchOpenSea<unknown>(
+    `/events/collection/${encodeURIComponent(slug)}?${params.toString()}`,
+  );
+}
+
 export function getEthUsdFallback() {
   const value = Number(process.env.ETH_USD_FALLBACK ?? "1730");
   return Number.isFinite(value) && value > 0 ? value : 1730;

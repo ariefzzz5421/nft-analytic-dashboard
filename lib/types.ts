@@ -123,3 +123,40 @@ export type ApiErrorResponse = {
   error: string;
   details?: string;
 };
+
+export type ActivityEventType =
+  | "sale"
+  | "transfer"
+  | "mint"
+  | "listing"
+  | "offer"
+  | "trait_offer"
+  | "collection_offer"
+  | "unknown";
+
+export type NormalizedActivityEvent = {
+  id: string;
+  eventType: ActivityEventType;
+  timestamp: string;
+  tokenId?: string;
+  tokenName?: string;
+  imageUrl?: string;
+  priceEth?: number;
+  paymentSymbol?: string;
+  from?: string;
+  to?: string;
+  buyer?: string;
+  seller?: string;
+  maker?: string;
+  txHash?: string;
+  orderHash?: string;
+  openseaUrl?: string;
+  etherscanUrl?: string;
+};
+
+export type ActivityApiResponse = {
+  slug: string;
+  events: NormalizedActivityEvent[];
+  next: string | null;
+  warnings: string[];
+};

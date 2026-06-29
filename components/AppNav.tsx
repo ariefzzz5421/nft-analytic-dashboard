@@ -23,8 +23,8 @@ export function AppNav() {
             <BarChart3 size={18} aria-hidden="true" />
           </span>
           <span>
-            <span className="block text-sm font-semibold text-white">NFT Analytic Dashboard</span>
-            <span className="block text-xs text-slate-500">Private dashboard</span>
+            <span className="block text-sm font-semibold text-white">NFT Sweep Depth</span>
+            <span className="block text-xs text-slate-500">Read-only analytics</span>
           </span>
         </Link>
 

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ExternalLink, RefreshCw, Trash2 } from "lucide-react";
 import { formatEth, formatPercent } from "@/lib/format";
-import { calculateSweepLadder } from "@/lib/sweep";
+import { calculateSweepLadder, DEFAULT_TARGET_FLOORS, generateSmartTargets } from "@/lib/sweep";
 import type { SweepApiResponse, WatchlistItem } from "@/lib/types";
 
 type WatchlistCardProps = {
@@ -26,10 +26,23 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
+function isDefaultTargetSet(targets: number[]) {
+  return (
+    targets.length === DEFAULT_TARGET_FLOORS.length &&
+    targets.every((target, index) => target === DEFAULT_TARGET_FLOORS[index])
+  );
+}
+
 export function WatchlistCard({ item, onRefresh, onRemove, record }: WatchlistCardProps) {
   const data = record.data;
-  const targetFloors = item.targetFloors.length ? item.targetFloors : [0.0005, 0.1];
-  const ladder = data ? calculateSweepLadder(data.listings, targetFloors, data.ethUsd) : [];
+  const smartTargets = data ? generateSmartTargets(data.collection.floor ?? 0) : [];
+  const targetFloors =
+    item.targetFloors.length && !isDefaultTargetSet(item.targetFloors)
+      ? item.targetFloors
+      : smartTargets;
+  const ladder = data
+    ? calculateSweepLadder(data.listings, targetFloors, data.ethUsd, data.collection.floor)
+    : [];
   const lowestTarget = ladder[0];
   const highestTarget = ladder[ladder.length - 1];
   const imageUrl = data?.collection.imageUrl ?? item.imageUrl;

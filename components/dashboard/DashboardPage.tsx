@@ -13,7 +13,7 @@ import { SweepLadderTable } from "@/components/SweepLadderTable";
 import { WatchlistCard } from "@/components/dashboard/WatchlistCard";
 import { formatEth, formatPercent } from "@/lib/format";
 import { extractSlug } from "@/lib/slug";
-import { calculateSweepLadder } from "@/lib/sweep";
+import { calculateSweepLadder, generateSmartTargets } from "@/lib/sweep";
 import type { ApiErrorResponse, SweepApiResponse, WatchlistItem } from "@/lib/types";
 import { useWatchlist } from "@/lib/watchlist";
 
@@ -122,10 +122,18 @@ export function DashboardPage() {
       (left, right) =>
         (right.data.risk.pumpabilityScore ?? -1) - (left.data.risk.pumpabilityScore ?? -1),
     )[0];
-    const lowestCostTo001 = dataRows
-      .map((row) =>
-        calculateSweepLadder(row.data.listings, [0.001], row.data.ethUsd)[0]?.costEth ?? null,
-      )
+    const lowestNextTargetCost = dataRows
+      .map((row) => {
+        const target = generateSmartTargets(row.data.collection.floor ?? 0)[0];
+        return target
+          ? calculateSweepLadder(
+              row.data.listings,
+              [target],
+              row.data.ethUsd,
+              row.data.collection.floor,
+            )[0]?.costEth ?? null
+          : null;
+      })
       .filter((value): value is number => value !== null)
       .sort((left, right) => left - right)[0];
     const highestListedRisk = [...dataRows].sort(
@@ -139,7 +147,7 @@ export function DashboardPage() {
 
     return {
       highestListedRisk,
-      lowestCostTo001,
+      lowestNextTargetCost,
       mostPumpable,
       weakBidCount,
     };
@@ -217,18 +225,14 @@ export function DashboardPage() {
           <div className="max-w-3xl">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/8 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
               <ShieldAlert size={14} aria-hidden="true" />
-              Read-only analytics
+              Read-only
             </div>
             <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-5xl">
-              NFT Analytic Dashboard
+              NFT Sweep Depth
             </h1>
             <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
-              Calculate how much ETH is needed to move an NFT collection floor.
+              Estimate sweep cost to target floors.
             </p>
-          </div>
-
-          <div className="rounded-lg border border-cyan-400/20 bg-cyan-400/8 px-4 py-3 text-sm text-cyan-100">
-            No wallet. No signatures. No purchase execution.
           </div>
         </header>
 
@@ -293,8 +297,8 @@ export function DashboardPage() {
             value={summary.mostPumpable?.data.collection.name ?? "Unknown"}
           />
           <DashboardMetric
-            label="Lowest cost to 0.001"
-            value={formatEth(summary.lowestCostTo001)}
+            label="Lowest next target"
+            value={formatEth(summary.lowestNextTargetCost)}
           />
           <DashboardMetric
             label="Highest listed risk"
