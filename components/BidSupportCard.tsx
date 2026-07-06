@@ -1,13 +1,15 @@
 import { Activity, Gauge } from "lucide-react";
-import { formatEth, formatNumber } from "@/lib/format";
+import { EthUsdValue } from "@/components/EthUsdValue";
+import { formatNumber } from "@/lib/format";
 import type { CollectionSummaryData, RiskSummary } from "@/lib/types";
 
 type BidSupportCardProps = {
   collection: CollectionSummaryData;
+  ethUsd?: number | null;
   risk: RiskSummary;
 };
 
-export function BidSupportCard({ collection, risk }: BidSupportCardProps) {
+export function BidSupportCard({ collection, ethUsd, risk }: BidSupportCardProps) {
   return (
     <aside className="rounded-lg border border-emerald-400/18 bg-slate-950/82 p-4">
       <div className="mb-5 flex items-center gap-3">
@@ -23,11 +25,15 @@ export function BidSupportCard({ collection, risk }: BidSupportCardProps) {
       <dl className="grid gap-3">
         <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <dt className="text-sm text-slate-400">Top offer</dt>
-          <dd className="font-mono text-sm text-white">{formatEth(collection.topOffer)}</dd>
+          <dd className="font-mono text-sm text-white">
+            <EthUsdValue ethUsd={ethUsd} label="Top offer" value={collection.topOffer} />
+          </dd>
         </div>
         <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <dt className="text-sm text-slate-400">Current floor</dt>
-          <dd className="font-mono text-sm text-white">{formatEth(collection.floor)}</dd>
+          <dd className="font-mono text-sm text-white">
+            <EthUsdValue ethUsd={ethUsd} label="Current floor" value={collection.floor} />
+          </dd>
         </div>
         <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <dt className="text-sm text-slate-400">Bid/floor ratio</dt>

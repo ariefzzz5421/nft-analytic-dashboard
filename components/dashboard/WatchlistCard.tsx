@@ -1,13 +1,16 @@
 "use client";
 
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ExternalLink, RefreshCw, Trash2 } from "lucide-react";
-import { formatEth, formatPercent } from "@/lib/format";
+import { EthUsdValue } from "@/components/EthUsdValue";
+import { formatPercent } from "@/lib/format";
 import { calculateSweepLadder, DEFAULT_TARGET_FLOORS, generateSmartTargets } from "@/lib/sweep";
 import type { SweepApiResponse, WatchlistItem } from "@/lib/types";
 
 type WatchlistCardProps = {
   item: WatchlistItem;
+  liveEthUsd?: number | null;
   onRefresh: () => void;
   onRemove: () => void;
   record: {
@@ -17,11 +20,11 @@ type WatchlistCardProps = {
   };
 };
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ children, label }: { children: ReactNode; label: string }) {
   return (
     <div>
       <p className="text-xs uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-1 font-mono text-sm text-slate-100">{value}</p>
+      <p className="mt-1 font-mono text-sm text-slate-100">{children}</p>
     </div>
   );
 }
@@ -33,8 +36,9 @@ function isDefaultTargetSet(targets: number[]) {
   );
 }
 
-export function WatchlistCard({ item, onRefresh, onRemove, record }: WatchlistCardProps) {
+export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }: WatchlistCardProps) {
   const data = record.data;
+  const ethUsd = liveEthUsd ?? data?.ethUsd ?? null;
   const smartTargets = data ? generateSmartTargets(data.collection.floor ?? 0) : [];
   const targetFloors =
     item.targetFloors.length && !isDefaultTargetSet(item.targetFloors)
@@ -81,14 +85,24 @@ export function WatchlistCard({ item, onRefresh, onRemove, record }: WatchlistCa
 
       {data ? (
         <div className="grid grid-cols-2 gap-3">
-          <Stat label="Floor" value={formatEth(data.collection.floor)} />
-          <Stat label="Top offer" value={formatEth(data.collection.topOffer)} />
-          <Stat label="Listed" value={String(data.collection.listedCount)} />
-          <Stat label="Listed %" value={formatPercent(data.collection.listedPercentage)} />
-          <Stat label="24h volume" value={formatEth(data.collection.volume24h)} />
-          <Stat label="Risk" value={data.risk.bidSupportLabel} />
-          <Stat label="Lowest target cost" value={formatEth(lowestTarget?.costEth)} />
-          <Stat label="Highest target cost" value={formatEth(highestTarget?.costEth)} />
+          <Stat label="Floor">
+            <EthUsdValue ethUsd={ethUsd} label="Floor" value={data.collection.floor} />
+          </Stat>
+          <Stat label="Top offer">
+            <EthUsdValue ethUsd={ethUsd} label="Top offer" value={data.collection.topOffer} />
+          </Stat>
+          <Stat label="Listed">{String(data.collection.listedCount)}</Stat>
+          <Stat label="Listed %">{formatPercent(data.collection.listedPercentage)}</Stat>
+          <Stat label="24h volume">
+            <EthUsdValue ethUsd={ethUsd} label="24h volume" value={data.collection.volume24h} />
+          </Stat>
+          <Stat label="Risk">{data.risk.bidSupportLabel}</Stat>
+          <Stat label="Lowest target cost">
+            <EthUsdValue ethUsd={ethUsd} label="Lowest target cost" value={lowestTarget?.costEth} />
+          </Stat>
+          <Stat label="Highest target cost">
+            <EthUsdValue ethUsd={ethUsd} label="Highest target cost" value={highestTarget?.costEth} />
+          </Stat>
         </div>
       ) : null}
 

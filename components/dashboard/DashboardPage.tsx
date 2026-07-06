@@ -3,13 +3,15 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, ShieldAlert } from "lucide-react";
+import { LoaderCircle, Plus, Search, ShieldAlert } from "lucide-react";
 import { CollectionSummary } from "@/components/CollectionSummary";
 import { ErrorState } from "@/components/ErrorState";
+import { EthUsdConverter } from "@/components/EthUsdConverter";
+import { HolderAnalysisCard } from "@/components/HolderAnalysisCard";
 import { LoadingState } from "@/components/LoadingState";
 import { RefreshRateControl } from "@/components/RefreshRateControl";
-import { RiskWarningCard } from "@/components/RiskWarningCard";
 import { SweepLadderTable } from "@/components/SweepLadderTable";
+import { useLiveEthPrice } from "@/components/useLiveEthPrice";
 import { WatchlistCard } from "@/components/dashboard/WatchlistCard";
 import { formatEth, formatPercent } from "@/lib/format";
 import { extractSlug } from "@/lib/slug";
@@ -53,6 +55,8 @@ export function DashboardPage() {
   const [loadingAction, setLoadingAction] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [refreshSeconds, setRefreshSeconds] = useState(60);
+  const liveEthPrice = useLiveEthPrice(oneOff?.ethUsd);
+  const activeEthUsd = liveEthPrice.priceUsd ?? oneOff?.ethUsd ?? null;
 
   useEffect(() => {
     if (!hydrated || items.length === 0) {
@@ -249,12 +253,18 @@ export function DashboardPage() {
               />
             </label>
             <button
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className={`inline-flex h-12 items-center justify-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300 disabled:cursor-not-allowed disabled:opacity-60 ${
+                loadingAction ? "analyze-button-active" : ""
+              }`}
               disabled={loadingAction}
               type="submit"
             >
-              <Search size={16} aria-hidden="true" />
-              Analyze once
+              {loadingAction ? (
+                <LoaderCircle className="animate-spin" size={16} aria-hidden="true" />
+              ) : (
+                <Search size={16} aria-hidden="true" />
+              )}
+              Analyze
             </button>
             <button
               className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-cyan-300 px-4 text-sm font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
@@ -272,7 +282,7 @@ export function DashboardPage() {
         {loadingAction ? <LoadingState /> : null}
 
         {oneOff && !loadingAction ? (
-          <section className="grid gap-4 rounded-lg border border-slate-800 bg-slate-950/70 p-4">
+          <section className="grid gap-4">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-white">One-time analysis</h2>
@@ -285,8 +295,9 @@ export function DashboardPage() {
                 Open detail
               </Link>
             </div>
-            <CollectionSummary collection={oneOff.collection} slug={oneOff.slug} />
-            <SweepLadderTable ladder={oneOff.sweepLadder} />
+            <CollectionSummary collection={oneOff.collection} ethUsd={activeEthUsd} slug={oneOff.slug} />
+            <HolderAnalysisCard data={oneOff} ethUsd={activeEthUsd} />
+            <SweepLadderTable ethUsd={activeEthUsd} ladder={oneOff.sweepLadder} />
           </section>
         ) : null}
 
@@ -341,6 +352,7 @@ export function DashboardPage() {
               <WatchlistCard
                 item={item}
                 key={item.slug}
+                liveEthUsd={liveEthPrice.priceUsd}
                 onRefresh={() => setRefreshNonce((value) => value + 1)}
                 onRemove={() => removeItem(item.slug)}
                 record={records[item.slug] ?? { data: null, error: "", loading: true }}
@@ -349,11 +361,11 @@ export function DashboardPage() {
           </div>
         </section>
 
-        <RiskWarningCard />
-
-        <p className="pb-4 text-center text-xs text-slate-500">
-          This is not financial advice. This tool estimates orderbook depth only.
-        </p>
+        <EthUsdConverter
+          ethUsd={liveEthPrice.priceUsd}
+          lastUpdated={liveEthPrice.lastUpdated}
+          source={liveEthPrice.source}
+        />
       </div>
     </main>
   );

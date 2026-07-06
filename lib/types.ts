@@ -6,6 +6,7 @@ export type NormalizedListing = {
   priceEth: number;
   currency: SupportedCurrency;
   marketplace: "opensea";
+  seller: string | null;
 };
 
 export type SweepLadderRow = {

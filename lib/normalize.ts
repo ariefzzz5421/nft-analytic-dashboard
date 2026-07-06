@@ -123,6 +123,29 @@ function findOrderHash(listing: unknown) {
   return "unknown";
 }
 
+function findSeller(listing: unknown) {
+  const paths: Array<Array<string | number>> = [
+    ["protocol_data", "parameters", "offerer"],
+    ["protocolData", "parameters", "offerer"],
+    ["maker", "address"],
+    ["maker_account", "address"],
+    ["seller", "address"],
+    ["seller_account", "address"],
+    ["account", "address"],
+    ["owner", "address"],
+  ];
+
+  for (const path of paths) {
+    const address = readString(readPath(listing, path));
+
+    if (address) {
+      return address.toLowerCase();
+    }
+  }
+
+  return null;
+}
+
 function readPriceParts(value: unknown) {
   const priceCurrent = readPath(value, ["price", "current"]);
   const rawValue =
@@ -148,6 +171,7 @@ function readPriceParts(value: unknown) {
 export function normalizeListing(listing: unknown): NormalizedListing | null {
   const tokenId = findTokenId(listing);
   const orderHash = findOrderHash(listing);
+  const seller = findSeller(listing);
   const { currency, decimals, rawValue } = readPriceParts(listing);
 
   if (!tokenId || !rawValue || !currency || !supportedCurrencies.has(currency as SupportedCurrency)) {
@@ -165,6 +189,7 @@ export function normalizeListing(listing: unknown): NormalizedListing | null {
     marketplace: "opensea",
     orderHash,
     priceEth,
+    seller,
     tokenId,
   };
 }

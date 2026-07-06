@@ -1,30 +1,45 @@
-import { formatEth, formatNumber, formatPercent } from "@/lib/format";
+import type { ReactNode } from "react";
+import { EthUsdValue } from "@/components/EthUsdValue";
+import { formatNumber, formatPercent } from "@/lib/format";
 import type { CollectionSummaryData } from "@/lib/types";
 
 type CollectionSummaryProps = {
   collection: CollectionSummaryData;
+  ethUsd?: number | null;
   slug: string;
 };
 
-function MetricCard({ label, value }: { label: string; value: string }) {
+type Metric =
+  | {
+      ethValue?: never;
+      label: string;
+      value: string;
+    }
+  | {
+      ethValue: number | null | undefined;
+      label: string;
+      value?: never;
+    };
+
+function MetricCard({ children, label }: { children: ReactNode; label: string }) {
   return (
     <div className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
       <p className="text-xs font-medium uppercase tracking-[0.16em] text-slate-500">{label}</p>
-      <p className="mt-2 min-h-8 break-words font-mono text-xl font-semibold text-white">{value}</p>
+      <p className="mt-2 min-h-8 break-words font-mono text-xl font-semibold text-white">{children}</p>
     </div>
   );
 }
 
-export function CollectionSummary({ collection, slug }: CollectionSummaryProps) {
-  const metrics = [
+export function CollectionSummary({ collection, ethUsd, slug }: CollectionSummaryProps) {
+  const metrics: Metric[] = [
     { label: "Total supply", value: formatNumber(collection.supply, 0) },
-    { label: "Current floor", value: formatEth(collection.floor) },
-    { label: "Top offer", value: formatEth(collection.topOffer) },
+    { ethValue: collection.floor, label: "Current floor" },
+    { ethValue: collection.topOffer, label: "Top offer" },
     { label: "Listed count", value: formatNumber(collection.listedCount, 0) },
     { label: "Listed percentage", value: formatPercent(collection.listedPercentage) },
     { label: "Owners", value: formatNumber(collection.owners, 0) },
-    { label: "24h volume", value: formatEth(collection.volume24h) },
-    { label: "Total volume", value: formatEth(collection.totalVolume) },
+    { ethValue: collection.volume24h, label: "24h volume" },
+    { ethValue: collection.totalVolume, label: "Total volume" },
   ];
 
   return (
@@ -53,7 +68,13 @@ export function CollectionSummary({ collection, slug }: CollectionSummaryProps) 
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {metrics.map((metric) => (
-          <MetricCard key={metric.label} label={metric.label} value={metric.value} />
+          <MetricCard key={metric.label} label={metric.label}>
+            {"ethValue" in metric ? (
+              <EthUsdValue ethUsd={ethUsd} label={metric.label} value={metric.ethValue} />
+            ) : (
+              metric.value
+            )}
+          </MetricCard>
         ))}
       </div>
     </section>

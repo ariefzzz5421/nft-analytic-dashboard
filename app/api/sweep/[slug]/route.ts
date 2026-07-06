@@ -9,6 +9,7 @@ import {
 } from "@/lib/opensea";
 import { normalizeListings, normalizeOfferPrice } from "@/lib/normalize";
 import { OPENSEA_REFRESH_POLICY } from "@/lib/refresh";
+import { fetchMarketPrices } from "@/lib/server/market";
 import { extractSlug } from "@/lib/slug";
 import {
   buildRiskSummary,
@@ -176,6 +177,12 @@ function findStatsFloor(statsPayload: unknown) {
   ]);
 }
 
+function readLiveEthUsd(prices: Awaited<ReturnType<typeof fetchMarketPrices>>) {
+  const eth = prices.assets.find((asset) => asset.symbol === "ETH" && asset.priceUsd > 0);
+
+  return eth?.priceUsd ?? getEthUsdFallback();
+}
+
 function buildSanityWarnings({
   floor,
   floorFromListings,
@@ -267,10 +274,11 @@ export async function GET(_request: Request, context: RouteContext) {
   }
 
   try {
-    const [collectionPayload, statsPayload, rawListings] = await Promise.all([
+    const [collectionPayload, statsPayload, rawListings, marketPrices] = await Promise.all([
       fetchCollection(slug),
       fetchCollectionStats(slug),
       fetchAllListings(slug),
+      fetchMarketPrices(),
     ]);
 
     let rawOffers: unknown[] = [];
@@ -299,7 +307,7 @@ export async function GET(_request: Request, context: RouteContext) {
       ...collection,
       floor: statsFloor ?? floorFromListings,
     };
-    const ethUsd = getEthUsdFallback();
+    const ethUsd = readLiveEthUsd(marketPrices);
     const smartTargets = generateSmartTargets(collectionWithFloor.floor ?? 0);
     const sweepLadder = calculateSweepLadder(
       listings,

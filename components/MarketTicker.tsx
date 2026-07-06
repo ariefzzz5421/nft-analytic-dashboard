@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Activity } from "lucide-react";
+import { TokenLogo } from "@/components/TokenLogo";
 import { formatNumber } from "@/lib/format";
 import type { MarketAssetPrice, MarketPricesResponse } from "@/lib/types";
 
@@ -41,6 +42,7 @@ function PricePill({ asset }: { asset: MarketAssetPrice }) {
 
   return (
     <div className="inline-flex items-center gap-2 whitespace-nowrap rounded border border-slate-800 bg-slate-950/60 px-2.5 py-1">
+      <TokenLogo className="h-5 w-5" symbol={asset.symbol} />
       <span className="font-semibold text-slate-100">{asset.symbol}</span>
       <span className="font-mono text-cyan-100 tabular-nums">
         {hasPrice ? <AnimatedNumber value={asset.priceUsd} /> : "Unavailable"}

@@ -1,13 +1,19 @@
-import { formatEth, formatRatio, formatUsd } from "@/lib/format";
+import { EthUsdValue } from "@/components/EthUsdValue";
+import { formatRatio, formatUsd } from "@/lib/format";
 import { getTreasuryCoverageLabel } from "@/lib/sweep";
 import type { SweepLadderRow } from "@/lib/types";
 
 type SweepLadderTableProps = {
+  ethUsd?: number | null;
   ladder: SweepLadderRow[];
   treasuryBalanceEth?: number | null;
 };
 
-export function SweepLadderTable({ ladder, treasuryBalanceEth = null }: SweepLadderTableProps) {
+export function SweepLadderTable({
+  ethUsd,
+  ladder,
+  treasuryBalanceEth = null,
+}: SweepLadderTableProps) {
   const showTreasury = treasuryBalanceEth !== null && Number.isFinite(treasuryBalanceEth);
 
   return (
@@ -27,6 +33,10 @@ export function SweepLadderTable({ ladder, treasuryBalanceEth = null }: SweepLad
           {ladder.map((row) => {
             const coverage =
               showTreasury && row.costEth > 0 ? Number((treasuryBalanceEth / row.costEth).toFixed(4)) : null;
+            const costUsd =
+              typeof ethUsd === "number" && Number.isFinite(ethUsd) && ethUsd > 0
+                ? row.costEth * ethUsd
+                : row.costUsd;
             const note =
               coverage !== null
                 ? `${formatRatio(coverage)} tracked-wallet coverage. ${getTreasuryCoverageLabel(coverage)}.`
@@ -39,11 +49,17 @@ export function SweepLadderTable({ ladder, treasuryBalanceEth = null }: SweepLad
                 className="border-b border-slate-900/90 text-slate-200 transition hover:bg-cyan-400/5"
                 key={row.targetFloor}
               >
-                <td className="px-3 py-4 font-mono text-cyan-200">{formatEth(row.targetFloor)}</td>
+                <td className="px-3 py-4 font-mono text-cyan-200">
+                  <EthUsdValue ethUsd={ethUsd} label="Target floor" value={row.targetFloor} />
+                </td>
                 <td className="px-3 py-4 font-mono">{row.itemsToSweep}</td>
-                <td className="px-3 py-4 font-mono">{formatEth(row.costEth)}</td>
-                <td className="px-3 py-4 font-mono">{formatUsd(row.costUsd)}</td>
-                <td className="px-3 py-4 font-mono">{formatEth(row.avgPriceEth)}</td>
+                <td className="px-3 py-4 font-mono">
+                  <EthUsdValue ethUsd={ethUsd} label="Estimated cost" value={row.costEth} />
+                </td>
+                <td className="px-3 py-4 font-mono">{formatUsd(costUsd)}</td>
+                <td className="px-3 py-4 font-mono">
+                  <EthUsdValue ethUsd={ethUsd} label="Average buy price" value={row.avgPriceEth} />
+                </td>
                 <td className="px-3 py-4 text-slate-400">{note}</td>
               </tr>
             );

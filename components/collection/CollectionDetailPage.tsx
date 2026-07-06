@@ -6,15 +6,18 @@ import { ExternalLink, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { ActivityTable } from "@/components/collection/ActivityTable";
 import { BidSupportCard } from "@/components/BidSupportCard";
 import { CollectionSummary } from "@/components/CollectionSummary";
+import { EthUsdValue } from "@/components/EthUsdValue";
+import { EthUsdConverter } from "@/components/EthUsdConverter";
 import { ErrorState } from "@/components/ErrorState";
+import { HolderAnalysisCard } from "@/components/HolderAnalysisCard";
 import { ListingDistributionChart } from "@/components/ListingDistributionChart";
 import { LoadingState } from "@/components/LoadingState";
 import { RefreshRateControl } from "@/components/RefreshRateControl";
-import { RiskWarningCard } from "@/components/RiskWarningCard";
 import { SweepCostChart } from "@/components/SweepCostChart";
 import { SweepLadderTable } from "@/components/SweepLadderTable";
+import { useLiveEthPrice } from "@/components/useLiveEthPrice";
 import { TrackedWalletsPanel } from "@/components/wallets/TrackedWalletsPanel";
-import { formatDateTime, formatEth, formatUsd } from "@/lib/format";
+import { formatDateTime, formatUsd } from "@/lib/format";
 import {
   calculateSweepLadder,
   DEFAULT_TARGET_FLOORS,
@@ -102,7 +105,8 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
   const [localTargets, setLocalTargets] = useState<number[]>([]);
   const [walletData, setWalletData] = useState<Record<string, WalletApiResponse | null>>({});
   const [refreshSeconds, setRefreshSeconds] = useState(60);
-  const [activityWarnings, setActivityWarnings] = useState<string[]>([]);
+  const liveEthPrice = useLiveEthPrice(data?.ethUsd);
+  const activeEthUsd = liveEthPrice.priceUsd ?? data?.ethUsd ?? null;
 
   const activeItem = watchlistItem ?? getDefaultWatchlistItem(slug);
   const currentFloor = data?.collection.floor ?? null;
@@ -182,28 +186,18 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
       return [];
     }
 
-    return calculateSweepLadder(data.listings, filteredTargets, data.ethUsd, currentFloor);
-  }, [currentFloor, data, filteredTargets]);
+    return calculateSweepLadder(data.listings, filteredTargets, activeEthUsd ?? data.ethUsd, currentFloor);
+  }, [activeEthUsd, currentFloor, data, filteredTargets]);
 
   const smartLadder = useMemo(() => {
     if (!data) {
       return [];
     }
 
-    return calculateSweepLadder(data.listings, smartTargets, data.ethUsd, currentFloor);
-  }, [currentFloor, data, smartTargets]);
+    return calculateSweepLadder(data.listings, smartTargets, activeEthUsd ?? data.ethUsd, currentFloor);
+  }, [activeEthUsd, currentFloor, data, smartTargets]);
 
   const nextMeaningfulTarget = smartLadder[0] ?? null;
-
-  const combinedWarnings = useMemo(() => {
-    const warnings = [
-      ...(data?.risk.warnings ?? []),
-      ...(data?.sanityWarnings ?? []),
-      ...activityWarnings,
-    ];
-
-    return [...new Set(warnings)];
-  }, [activityWarnings, data]);
 
   const treasuryBalanceEth = useMemo(() => {
     const balances = Object.values(walletData)
@@ -377,7 +371,12 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
           </div>
           <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-400">
             <span>Last updated: {formatDateTime(data?.lastUpdated)}</span>
-            {treasuryBalanceEth !== null ? <span>Tracked balance: {formatEth(treasuryBalanceEth)}</span> : null}
+            {treasuryBalanceEth !== null ? (
+              <span>
+                Tracked balance:{" "}
+                <EthUsdValue ethUsd={activeEthUsd} label="Tracked balance" value={treasuryBalanceEth} />
+              </span>
+            ) : null}
           </div>
         </header>
 
@@ -386,7 +385,8 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
 
         {data && !loading ? (
           <>
-            <CollectionSummary collection={data.collection} slug={data.slug} />
+            <CollectionSummary collection={data.collection} ethUsd={activeEthUsd} slug={data.slug} />
+            <HolderAnalysisCard data={data} ethUsd={activeEthUsd} />
 
             <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
               <div className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
@@ -492,9 +492,19 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                       {nextMeaningfulTarget ? (
                         <div className="mt-2 grid gap-1 text-sm">
                           <p className="font-mono text-lg font-semibold text-white">
-                            {formatEth(nextMeaningfulTarget.targetFloor)}
+                            <EthUsdValue
+                              ethUsd={activeEthUsd}
+                              label="Next target floor"
+                              value={nextMeaningfulTarget.targetFloor}
+                            />
                           </p>
-                          <p className="font-mono text-cyan-100">{formatEth(nextMeaningfulTarget.costEth)}</p>
+                          <p className="font-mono text-cyan-100">
+                            <EthUsdValue
+                              ethUsd={activeEthUsd}
+                              label="Next target cost"
+                              value={nextMeaningfulTarget.costEth}
+                            />
+                          </p>
                           <p className="font-mono text-slate-300">{formatUsd(nextMeaningfulTarget.costUsd)}</p>
                           <p className="text-slate-400">{nextMeaningfulTarget.itemsToSweep} items</p>
                         </div>
@@ -513,7 +523,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                           onClick={() => removeTarget(target)}
                           type="button"
                         >
-                          {formatEth(target)}
+                          <EthUsdValue ethUsd={activeEthUsd} label="Target floor" value={target} />
                         </button>
                       ))
                     ) : (
@@ -559,11 +569,20 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                   <p className="mt-3 rounded-md border border-emerald-400/20 bg-emerald-400/8 px-3 py-2 text-sm text-emerald-100">
                     Tracked wallet balance can cover{" "}
                     {Math.round(primaryCoverage.coverage * 100)}% of cost to{" "}
-                    {formatEth(primaryCoverage.targetFloor)}.
+                    <EthUsdValue
+                      ethUsd={activeEthUsd}
+                      label="Coverage target floor"
+                      value={primaryCoverage.targetFloor}
+                    />
+                    .
                   </p>
                 ) : null}
                 {ladder.length > 0 ? (
-                  <SweepLadderTable ladder={ladder} treasuryBalanceEth={treasuryBalanceEth} />
+                  <SweepLadderTable
+                    ethUsd={activeEthUsd}
+                    ladder={ladder}
+                    treasuryBalanceEth={treasuryBalanceEth}
+                  />
                 ) : (
                   <div className="rounded-md border border-dashed border-slate-700 p-5 text-sm text-slate-400">
                     No higher target selected.
@@ -571,7 +590,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                 )}
               </div>
 
-              <BidSupportCard collection={data.collection} risk={data.risk} />
+              <BidSupportCard collection={data.collection} ethUsd={activeEthUsd} risk={data.risk} />
             </section>
 
             <section className="grid gap-6 xl:grid-cols-2">
@@ -579,7 +598,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
               <ListingDistributionChart data={data.listingDistribution} />
             </section>
 
-            <ActivityTable onWarningsChange={setActivityWarnings} slug={slug} />
+            <ActivityTable slug={slug} />
 
             <TrackedWalletsPanel
               addWallet={(wallet) => {
@@ -593,15 +612,19 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                 }
                 addWallet(slug, wallet);
               }}
-              ethUsd={data.ethUsd}
+              ethUsd={activeEthUsd ?? data.ethUsd}
               onWalletData={handleWalletData}
               removeWallet={(address) => removeWallet(slug, address)}
               wallets={activeItem.devWallets}
             />
+
+            <EthUsdConverter
+              ethUsd={liveEthPrice.priceUsd ?? data.ethUsd}
+              lastUpdated={liveEthPrice.lastUpdated ?? data.lastUpdated}
+              source={liveEthPrice.source}
+            />
           </>
         ) : null}
-
-        <RiskWarningCard warnings={combinedWarnings.length ? combinedWarnings : undefined} />
 
         <div className="pb-4 text-center text-xs text-slate-500">
           <Link className="text-cyan-200 hover:text-cyan-100" href="/">
