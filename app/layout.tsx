@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import { AppNav } from "@/components/AppNav";
+import { AppGate } from "@/components/auth/AppGate";
+import { SetupRequired } from "@/components/auth/SetupRequired";
+import { WalletProviders } from "@/components/auth/WalletProviders";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -16,11 +20,25 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const clerkPublishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  const walletConnectProjectId = process.env.NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID;
+  const walletConnectConfigured = Boolean(walletConnectProjectId);
+
   return (
     <html lang="en">
       <body>
-        <AppNav />
-        {children}
+        {clerkPublishableKey ? (
+          <ClerkProvider publishableKey={clerkPublishableKey}>
+            <WalletProviders projectId={walletConnectProjectId}>
+              <AppGate walletConnectConfigured={walletConnectConfigured}>
+                <AppNav />
+                {children}
+              </AppGate>
+            </WalletProviders>
+          </ClerkProvider>
+        ) : (
+          <SetupRequired />
+        )}
       </body>
     </html>
   );

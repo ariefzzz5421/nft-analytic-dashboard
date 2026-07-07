@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LoaderCircle, Plus, Search, ShieldAlert } from "lucide-react";
 import { CollectionSummary } from "@/components/CollectionSummary";
+import { CreatorActivityCard } from "@/components/CreatorActivityCard";
 import { ErrorState } from "@/components/ErrorState";
 import { EthUsdConverter } from "@/components/EthUsdConverter";
 import { HolderAnalysisCard } from "@/components/HolderAnalysisCard";
@@ -296,6 +297,7 @@ export function DashboardPage() {
               </Link>
             </div>
             <CollectionSummary collection={oneOff.collection} ethUsd={activeEthUsd} slug={oneOff.slug} />
+            <CreatorActivityCard data={oneOff} ethUsd={activeEthUsd} />
             <HolderAnalysisCard data={oneOff} ethUsd={activeEthUsd} />
             <SweepLadderTable ethUsd={activeEthUsd} ladder={oneOff.sweepLadder} />
           </section>

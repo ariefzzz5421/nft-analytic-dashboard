@@ -50,7 +50,7 @@ export function SweepLadderTable({
                 key={row.targetFloor}
               >
                 <td className="px-3 py-4 font-mono text-cyan-200">
-                  <EthUsdValue ethUsd={ethUsd} label="Target floor" value={row.targetFloor} />
+                  <EthUsdValue ethUsd={ethUsd} label="Target floor" showInlineUsd value={row.targetFloor} />
                 </td>
                 <td className="px-3 py-4 font-mono">{row.itemsToSweep}</td>
                 <td className="px-3 py-4 font-mono">

@@ -25,6 +25,8 @@
 *.pem
 .agents/
 .codex/
+clerk-nextjs/
+y/
 
 # debug
 npm-debug.log*

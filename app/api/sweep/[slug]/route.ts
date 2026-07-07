@@ -33,8 +33,12 @@ function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
-function readPath(value: unknown, path: string[]) {
+function readPath(value: unknown, path: Array<string | number>) {
   return path.reduce<unknown>((current, key) => {
+    if (typeof key === "number") {
+      return Array.isArray(current) ? current[key] : undefined;
+    }
+
     return isRecord(current) ? current[key] : undefined;
   }, value);
 }
@@ -56,7 +60,7 @@ function readNumber(value: unknown) {
   return null;
 }
 
-function firstNumber(source: unknown, paths: string[][]) {
+function firstNumber(source: unknown, paths: Array<Array<string | number>>) {
   for (const path of paths) {
     const value = readNumber(readPath(source, path));
 
@@ -68,7 +72,7 @@ function firstNumber(source: unknown, paths: string[][]) {
   return null;
 }
 
-function firstString(source: unknown, paths: string[][]) {
+function firstString(source: unknown, paths: Array<Array<string | number>>) {
   for (const path of paths) {
     const value = readString(readPath(source, path));
 
@@ -108,6 +112,46 @@ function find24hVolume(stats: unknown) {
   });
 
   return firstNumber(oneDay, [["volume"], ["volume_change"], ["total_volume"]]);
+}
+
+function normalizeAddress(value: string | null) {
+  return value && /^0x[a-fA-F0-9]{40}$/.test(value) ? value.toLowerCase() : null;
+}
+
+function buildCreatorSummary(collection: unknown) {
+  const explicitCreator =
+    normalizeAddress(
+      firstString(collection, [
+        ["creator", "address"],
+        ["creator_address"],
+        ["creatorAddress"],
+        ["created_by", "address"],
+        ["createdBy", "address"],
+      ]),
+    ) ?? null;
+  const owner =
+    normalizeAddress(
+      firstString(collection, [
+        ["owner", "address"],
+        ["owner"],
+        ["primary_asset_contracts", 0, "owner"],
+      ]),
+    ) ?? null;
+  const contractAddress = normalizeAddress(
+    firstString(collection, [
+      ["primary_asset_contracts", 0, "address"],
+      ["contracts", 0, "address"],
+      ["contract", "address"],
+      ["address"],
+    ]),
+  );
+  const address = explicitCreator ?? owner;
+
+  return {
+    address,
+    contractAddress,
+    source: explicitCreator ? "OpenSea creator" : owner ? "OpenSea owner" : null,
+  };
 }
 
 function buildCollectionSummary({
@@ -155,6 +199,7 @@ function buildCollectionSummary({
     supply !== null && supply > 0 ? Number(((listingsCount / supply) * 100).toFixed(2)) : null;
 
   return {
+    creator: buildCreatorSummary(collection),
     floor,
     imageUrl,
     listedCount: listingsCount,

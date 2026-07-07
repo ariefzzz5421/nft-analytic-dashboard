@@ -33,6 +33,11 @@ export type ListingDistributionBucket = {
 };
 
 export type CollectionSummaryData = {
+  creator: {
+    address: string | null;
+    contractAddress: string | null;
+    source: string | null;
+  };
   name: string;
   imageUrl: string | null;
   supply: number | null;

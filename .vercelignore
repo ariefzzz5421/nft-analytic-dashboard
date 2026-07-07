@@ -7,3 +7,5 @@ dev-server*.log
 prod-server*.log
 .agents/
 .codex/
+clerk-nextjs/
+y/

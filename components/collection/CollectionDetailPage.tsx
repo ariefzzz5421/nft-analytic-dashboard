@@ -6,6 +6,7 @@ import { ExternalLink, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { ActivityTable } from "@/components/collection/ActivityTable";
 import { BidSupportCard } from "@/components/BidSupportCard";
 import { CollectionSummary } from "@/components/CollectionSummary";
+import { CreatorActivityCard } from "@/components/CreatorActivityCard";
 import { EthUsdValue } from "@/components/EthUsdValue";
 import { EthUsdConverter } from "@/components/EthUsdConverter";
 import { ErrorState } from "@/components/ErrorState";
@@ -386,6 +387,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
         {data && !loading ? (
           <>
             <CollectionSummary collection={data.collection} ethUsd={activeEthUsd} slug={data.slug} />
+            <CreatorActivityCard data={data} ethUsd={activeEthUsd} />
             <HolderAnalysisCard data={data} ethUsd={activeEthUsd} />
 
             <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
@@ -495,6 +497,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                             <EthUsdValue
                               ethUsd={activeEthUsd}
                               label="Next target floor"
+                              showInlineUsd
                               value={nextMeaningfulTarget.targetFloor}
                             />
                           </p>
@@ -523,7 +526,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                           onClick={() => removeTarget(target)}
                           type="button"
                         >
-                          <EthUsdValue ethUsd={activeEthUsd} label="Target floor" value={target} />
+                          <EthUsdValue ethUsd={activeEthUsd} label="Target floor" showInlineUsd value={target} />
                         </button>
                       ))
                     ) : (
@@ -572,6 +575,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                     <EthUsdValue
                       ethUsd={activeEthUsd}
                       label="Coverage target floor"
+                      showInlineUsd
                       value={primaryCoverage.targetFloor}
                     />
                     .
