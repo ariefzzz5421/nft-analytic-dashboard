@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BarChart3, Eye, Gauge, Settings, WalletCards } from "lucide-react";
 import { MarketTicker } from "@/components/MarketTicker";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const navItems = [
   { activePath: "/", href: "/", label: "Dashboard", icon: Gauge },
@@ -28,31 +29,34 @@ export function AppNav() {
           </span>
         </Link>
 
-        <div className="flex gap-1 overflow-x-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const active =
-              item.href === "/#watchlist"
-                ? false
-                : item.activePath === "/"
-                  ? pathname === "/"
-                  : pathname.startsWith(item.activePath);
+        <div className="flex items-center gap-2 overflow-x-auto">
+          <div className="flex gap-1">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const active =
+                item.href === "/#watchlist"
+                  ? false
+                  : item.activePath === "/"
+                    ? pathname === "/"
+                    : pathname.startsWith(item.activePath);
 
-            return (
-              <Link
-                className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm transition ${
-                  active
-                    ? "bg-cyan-400/10 text-cyan-100"
-                    : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
-                }`}
-                href={item.href}
-                key={item.href}
-              >
-                <Icon size={16} aria-hidden="true" />
-                {item.label}
-              </Link>
-            );
-          })}
+              return (
+                <Link
+                  className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm transition ${
+                    active
+                      ? "bg-cyan-400/10 text-cyan-100"
+                      : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+                  }`}
+                  href={item.href}
+                  key={item.href}
+                >
+                  <Icon size={16} aria-hidden="true" />
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+          <ThemeToggle />
         </div>
       </div>
       <MarketTicker />

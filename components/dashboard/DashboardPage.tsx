@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { LoaderCircle, Plus, Search, ShieldAlert } from "lucide-react";
@@ -14,10 +14,8 @@ import { RefreshRateControl } from "@/components/RefreshRateControl";
 import { SweepLadderTable } from "@/components/SweepLadderTable";
 import { useLiveEthPrice } from "@/components/useLiveEthPrice";
 import { WatchlistCard } from "@/components/dashboard/WatchlistCard";
-import { formatEth, formatPercent } from "@/lib/format";
 import { extractSlug } from "@/lib/slug";
-import { calculateSweepLadder, generateSmartTargets } from "@/lib/sweep";
-import type { ApiErrorResponse, SweepApiResponse, WatchlistItem } from "@/lib/types";
+import type { ApiErrorResponse, SweepApiResponse } from "@/lib/types";
 import { useWatchlist } from "@/lib/watchlist";
 
 type SweepRecord = {
@@ -35,15 +33,6 @@ async function fetchSweep(slug: string) {
   }
 
   return payload as SweepApiResponse;
-}
-
-function DashboardMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/80 p-4">
-      <p className="text-xs uppercase tracking-[0.16em] text-slate-500">{label}</p>
-      <p className="mt-2 min-h-8 font-mono text-lg font-semibold text-white">{value}</p>
-    </div>
-  );
 }
 
 export function DashboardPage() {
@@ -118,45 +107,6 @@ export function DashboardPage() {
 
     return () => window.clearInterval(interval);
   }, [hydrated, items.length, refreshSeconds]);
-
-  const summary = useMemo(() => {
-    const dataRows = items
-      .map((item) => ({ data: records[item.slug]?.data ?? null, item }))
-      .filter((row): row is { data: SweepApiResponse; item: WatchlistItem } => Boolean(row.data));
-    const mostPumpable = [...dataRows].sort(
-      (left, right) =>
-        (right.data.risk.pumpabilityScore ?? -1) - (left.data.risk.pumpabilityScore ?? -1),
-    )[0];
-    const lowestNextTargetCost = dataRows
-      .map((row) => {
-        const target = generateSmartTargets(row.data.collection.floor ?? 0)[0];
-        return target
-          ? calculateSweepLadder(
-              row.data.listings,
-              [target],
-              row.data.ethUsd,
-              row.data.collection.floor,
-            )[0]?.costEth ?? null
-          : null;
-      })
-      .filter((value): value is number => value !== null)
-      .sort((left, right) => left - right)[0];
-    const highestListedRisk = [...dataRows].sort(
-      (left, right) =>
-        (right.data.collection.listedPercentage ?? -1) -
-        (left.data.collection.listedPercentage ?? -1),
-    )[0];
-    const weakBidCount = dataRows.filter((row) =>
-      ["Weak bid support", "Floor theater risk"].includes(row.data.risk.bidSupportLabel),
-    ).length;
-
-    return {
-      highestListedRisk,
-      lowestNextTargetCost,
-      mostPumpable,
-      weakBidCount,
-    };
-  }, [items, records]);
 
   function readSlug() {
     const slug = extractSlug(query);
@@ -297,28 +247,11 @@ export function DashboardPage() {
               </Link>
             </div>
             <CollectionSummary collection={oneOff.collection} ethUsd={activeEthUsd} slug={oneOff.slug} />
+            <SweepLadderTable ethUsd={activeEthUsd} ladder={oneOff.sweepLadder} />
             <CreatorActivityCard data={oneOff} ethUsd={activeEthUsd} />
             <HolderAnalysisCard data={oneOff} ethUsd={activeEthUsd} />
-            <SweepLadderTable ethUsd={activeEthUsd} ladder={oneOff.sweepLadder} />
           </section>
         ) : null}
-
-        <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-          <DashboardMetric label="Collections" value={String(items.length)} />
-          <DashboardMetric
-            label="Most pumpable"
-            value={summary.mostPumpable?.data.collection.name ?? "Unknown"}
-          />
-          <DashboardMetric
-            label="Lowest next target"
-            value={formatEth(summary.lowestNextTargetCost)}
-          />
-          <DashboardMetric
-            label="Highest listed risk"
-            value={formatPercent(summary.highestListedRisk?.data.collection.listedPercentage)}
-          />
-          <DashboardMetric label="Weak bid support" value={String(summary.weakBidCount)} />
-        </section>
 
         <section className="grid gap-4" id="watchlist">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">

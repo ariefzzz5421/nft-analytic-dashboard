@@ -3,13 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, RefreshCw, UserRound } from "lucide-react";
 import { EthUsdValue } from "@/components/EthUsdValue";
-import { formatAddress, formatDateTime } from "@/lib/format";
+import { formatAddress, formatDateTime, formatEth } from "@/lib/format";
 import type {
   ActivityApiResponse,
   ActivityEventType,
   ApiErrorResponse,
   NormalizedActivityEvent,
   SweepApiResponse,
+  WalletApiResponse,
 } from "@/lib/types";
 
 type CreatorActivityCardProps = {
@@ -41,6 +42,17 @@ async function fetchActivity(slug: string) {
   }
 
   return payload as ActivityApiResponse;
+}
+
+async function fetchCreatorWallet(address: string) {
+  const response = await fetch(`/api/wallet/${encodeURIComponent(address)}`);
+  const payload = (await response.json()) as WalletApiResponse | ApiErrorResponse;
+
+  if (!response.ok) {
+    throw new Error("error" in payload ? payload.error : "Creator wallet transactions unavailable.");
+  }
+
+  return payload as WalletApiResponse;
 }
 
 function eventAddressMatches(event: NormalizedActivityEvent, address: string) {
@@ -86,8 +98,11 @@ function AddressLink({ address, label }: { address: string | null | undefined; l
 
 export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) {
   const [events, setEvents] = useState<NormalizedActivityEvent[]>([]);
+  const [wallet, setWallet] = useState<WalletApiResponse | null>(null);
   const [error, setError] = useState("");
+  const [walletError, setWalletError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [walletLoading, setWalletLoading] = useState(false);
   const creatorAddress = data.collection.creator.address;
   const latestEvent = events[0] ?? null;
   const creatorEvents = useMemo(
@@ -101,7 +116,10 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
 
     async function load() {
       setLoading(true);
+      setWalletLoading(Boolean(creatorAddress));
       setError("");
+      setWalletError("");
+      setWallet(null);
 
       try {
         const response = await fetchActivity(data.slug);
@@ -118,6 +136,29 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
           setLoading(false);
         }
       }
+
+      if (!creatorAddress) {
+        if (!cancelled) {
+          setWalletLoading(false);
+        }
+        return;
+      }
+
+      try {
+        const response = await fetchCreatorWallet(creatorAddress);
+
+        if (!cancelled) {
+          setWallet(response);
+        }
+      } catch (cause) {
+        if (!cancelled) {
+          setWalletError(cause instanceof Error ? cause.message : "Creator wallet transactions unavailable.");
+        }
+      } finally {
+        if (!cancelled) {
+          setWalletLoading(false);
+        }
+      }
     }
 
     void load();
@@ -125,7 +166,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
     return () => {
       cancelled = true;
     };
-  }, [data.slug]);
+  }, [creatorAddress, data.slug]);
 
   return (
     <section className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
@@ -145,12 +186,25 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
           className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50"
           onClick={() => {
             setEvents([]);
+            setWallet(null);
             setLoading(true);
+            setWalletLoading(Boolean(creatorAddress));
             setError("");
+            setWalletError("");
             void fetchActivity(data.slug)
               .then((response) => setEvents(response.events))
               .catch((cause) => setError(cause instanceof Error ? cause.message : "Activity unavailable."))
               .finally(() => setLoading(false));
+            if (creatorAddress) {
+              void fetchCreatorWallet(creatorAddress)
+                .then((response) => setWallet(response))
+                .catch((cause) =>
+                  setWalletError(
+                    cause instanceof Error ? cause.message : "Creator wallet transactions unavailable.",
+                  ),
+                )
+                .finally(() => setWalletLoading(false));
+            }
           }}
           type="button"
         >
@@ -202,6 +256,94 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
           <div className="h-12 rounded-md bg-slate-900/80" />
         </div>
       ) : null}
+
+      <div className="mt-3 rounded-md border border-slate-800 bg-slate-950/70 p-3">
+        <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
+              Creator wallet transactions
+            </p>
+            <p className="mt-1 text-sm text-slate-400">
+              Showing up to 10 latest Etherscan transactions from the creator address.
+            </p>
+          </div>
+          {wallet ? (
+            <p className="font-mono text-xs text-slate-500">
+              Balance {formatEth(wallet.balanceEth)}
+            </p>
+          ) : null}
+        </div>
+
+        {walletError ? (
+          <div className="mt-3 rounded-md border border-amber-400/20 bg-amber-400/8 p-3 text-sm text-amber-100">
+            {walletError}
+          </div>
+        ) : null}
+
+        {walletLoading ? (
+          <div className="mt-3 grid gap-2">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div className="h-10 rounded-md bg-slate-900/80" key={index} />
+            ))}
+          </div>
+        ) : null}
+
+        {!walletLoading && wallet?.recentTransactions.length ? (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[760px] border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-800 text-xs uppercase tracking-[0.16em] text-slate-500">
+                  <th className="px-3 py-3 font-semibold">Time</th>
+                  <th className="px-3 py-3 font-semibold">Direction</th>
+                  <th className="px-3 py-3 font-semibold">Value</th>
+                  <th className="px-3 py-3 font-semibold">From</th>
+                  <th className="px-3 py-3 font-semibold">To</th>
+                  <th className="px-3 py-3 font-semibold">Tx</th>
+                </tr>
+              </thead>
+              <tbody>
+                {wallet.recentTransactions.slice(0, 10).map((transaction) => (
+                  <tr
+                    className="border-b border-slate-900/90 text-slate-200 transition hover:bg-cyan-400/5"
+                    key={transaction.hash}
+                  >
+                    <td className="px-3 py-3 text-xs text-slate-400">
+                      {formatDateTime(transaction.timestamp)}
+                    </td>
+                    <td className="px-3 py-3 capitalize">{transaction.direction}</td>
+                    <td className="px-3 py-3 font-mono">{formatEth(transaction.valueEth)}</td>
+                    <td className="px-3 py-3 font-mono text-xs text-slate-400">
+                      {formatAddress(transaction.from)}
+                    </td>
+                    <td className="px-3 py-3 font-mono text-xs text-slate-400">
+                      {formatAddress(transaction.to)}
+                    </td>
+                    <td className="px-3 py-3">
+                      <a
+                        className="inline-flex items-center gap-1 rounded-md border border-slate-700 px-2 py-1 text-xs text-cyan-100 transition hover:border-cyan-400/50"
+                        href={`https://etherscan.io/tx/${transaction.hash}`}
+                        rel="noreferrer"
+                        target="_blank"
+                      >
+                        {formatAddress(transaction.hash)}
+                        <ExternalLink size={12} aria-hidden="true" />
+                      </a>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+
+        {!walletLoading && wallet && wallet.recentTransactions.length === 0 ? (
+          <p className="mt-3 text-sm text-slate-500">No creator wallet transactions found.</p>
+        ) : null}
+
+        {!walletLoading && !wallet && !walletError && !creatorAddress ? (
+          <p className="mt-3 text-sm text-slate-500">Creator address unavailable from OpenSea.</p>
+        ) : null}
+      </div>
 
       {!loading ? (
         <div className="mt-3 grid gap-3 lg:grid-cols-2">

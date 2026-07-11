@@ -81,6 +81,8 @@ function buildRangeTargets(start: number, end: number, step: number) {
   return targets;
 }
 
+const quickTargets = [0.1, 0.5, 1];
+
 export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
   const {
     addWallet,
@@ -387,8 +389,6 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
         {data && !loading ? (
           <>
             <CollectionSummary collection={data.collection} ethUsd={activeEthUsd} slug={data.slug} />
-            <CreatorActivityCard data={data} ethUsd={activeEthUsd} />
-            <HolderAnalysisCard data={data} ethUsd={activeEthUsd} />
 
             <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
               <div className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
@@ -442,7 +442,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                             className="h-10 min-w-0 flex-1 rounded-md border border-slate-700 bg-slate-950 px-3 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
                             inputMode="decimal"
                             onChange={(event) => setTargetInput(event.target.value)}
-                            placeholder="0.002, 0.003, 0.0075, 0.02"
+                            placeholder="0.002, 0.003, 0.1, 0.5, 1"
                             value={targetInput}
                           />
                           <button
@@ -487,6 +487,21 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                       {targetError ? (
                         <p className="mt-2 text-sm text-red-200">{targetError}</p>
                       ) : null}
+                      <div className="mt-3 flex flex-wrap items-center gap-2">
+                        <span className="text-xs uppercase tracking-[0.16em] text-slate-500">
+                          Quick target
+                        </span>
+                        {quickTargets.map((target) => (
+                          <button
+                            className="rounded-md border border-slate-700 px-3 py-1.5 font-mono text-xs text-slate-200 transition hover:border-cyan-400/50 hover:text-cyan-100"
+                            key={target}
+                            onClick={() => saveTargets([...activeTargets, target])}
+                            type="button"
+                          >
+                            {target} ETH
+                          </button>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="rounded-md border border-cyan-400/20 bg-cyan-400/8 p-3">
@@ -596,6 +611,9 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
 
               <BidSupportCard collection={data.collection} ethUsd={activeEthUsd} risk={data.risk} />
             </section>
+
+            <CreatorActivityCard data={data} ethUsd={activeEthUsd} />
+            <HolderAnalysisCard data={data} ethUsd={activeEthUsd} />
 
             <section className="grid gap-6 xl:grid-cols-2">
               <SweepCostChart data={ladder} />

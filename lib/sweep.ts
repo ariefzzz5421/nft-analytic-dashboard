@@ -5,7 +5,7 @@ import type {
   SweepLadderRow,
 } from "@/lib/types";
 
-export const DEFAULT_TARGET_FLOORS = [0.0005, 0.001, 0.005, 0.01, 0.05, 0.1];
+export const DEFAULT_TARGET_FLOORS = [0.0005, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1];
 
 const WARNINGS = [
   "Higher floor does not guarantee exit liquidity.",
@@ -34,15 +34,21 @@ export function generateSmartTargets(currentFloor: number): number[] {
   } else if (currentFloor < 0.01) {
     targets = [0.01, 0.02, 0.03, 0.05];
   } else if (currentFloor < 0.05) {
-    targets = [0.02, 0.03, 0.05, 0.075];
+    targets = [0.02, 0.03, 0.05, 0.075, 0.1, 0.5, 1];
   } else if (currentFloor < 0.1) {
-    targets = [0.075, 0.1];
+    targets = [0.075, 0.1, 0.5, 1];
+  } else if (currentFloor < 0.5) {
+    targets = [0.5, 1];
+  } else if (currentFloor < 1) {
+    targets = [1];
   } else {
     const nextTenth = Math.floor(currentFloor * 10) / 10 + 0.1;
     targets = Array.from({ length: 5 }, (_, index) => round(nextTenth + index * 0.1, 4));
   }
 
-  return targets.filter((target) => target > currentFloor);
+  return [...new Set([...targets, 0.1, 0.5, 1])]
+    .filter((target) => target > currentFloor)
+    .sort((left, right) => left - right);
 }
 
 export function sanitizeTargets(targets: number[], currentFloor: number | null | undefined) {
