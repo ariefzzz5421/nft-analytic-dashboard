@@ -154,7 +154,7 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
   }, [loadActivity]);
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
+    <section className="activity-ledger">
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="text-lg font-semibold text-white">Activity</h2>
@@ -163,7 +163,7 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
         <div className="flex flex-wrap gap-2">
           {filters.map((filter) => (
             <button
-              className={`rounded-md border px-3 py-1.5 text-sm transition ${
+              className={`button button--filter ${
                 activeFilter === filter.value
                   ? "border-cyan-300 bg-cyan-300 text-slate-950"
                   : "border-slate-700 text-slate-300 hover:border-cyan-400/50"
@@ -180,7 +180,7 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
             </button>
           ))}
           <button
-            className="inline-flex items-center gap-2 rounded-md border border-slate-700 px-3 py-1.5 text-sm text-slate-300 transition hover:border-cyan-400/50"
+            className="button button--secondary"
             onClick={() => void loadActivity({ append: false })}
             type="button"
           >
@@ -262,7 +262,7 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
                     <div className="flex gap-2">
                       {event.etherscanUrl ? (
                         <a
-                          className="inline-flex items-center gap-1 rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 transition hover:border-cyan-400/50"
+                          className="button button--table"
                           href={event.etherscanUrl}
                           rel="noreferrer"
                           target="_blank"
@@ -273,7 +273,7 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
                       ) : null}
                       {event.openseaUrl ? (
                         <a
-                          className="inline-flex items-center gap-1 rounded-md border border-slate-700 px-2 py-1 text-xs text-slate-300 transition hover:border-cyan-400/50"
+                          className="button button--table"
                           href={event.openseaUrl}
                           rel="noreferrer"
                           target="_blank"
@@ -294,7 +294,7 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
       {nextCursor ? (
         <div className="mt-4 flex justify-center">
           <button
-            className="inline-flex items-center justify-center rounded-md border border-slate-700 px-4 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50 disabled:cursor-not-allowed disabled:opacity-60"
+            className="button button--secondary"
             disabled={loadingMore}
             onClick={() => void loadActivity({ append: true, cursor: nextCursor })}
             type="button"

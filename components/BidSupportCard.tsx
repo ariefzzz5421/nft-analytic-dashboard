@@ -11,9 +11,9 @@ type BidSupportCardProps = {
 
 export function BidSupportCard({ collection, ethUsd, risk }: BidSupportCardProps) {
   return (
-    <aside className="rounded-lg border border-emerald-400/18 bg-slate-950/82 p-4">
+    <aside className="intelligence-rail">
       <div className="mb-5 flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-md border border-emerald-400/25 bg-emerald-400/10 text-emerald-200">
+        <div className="intelligence-rail__icon">
           <Gauge size={20} aria-hidden="true" />
         </div>
         <div>
@@ -43,12 +43,12 @@ export function BidSupportCard({ collection, ethUsd, risk }: BidSupportCardProps
         </div>
       </dl>
 
-      <div className="mt-5 rounded-md border border-cyan-400/20 bg-cyan-400/8 p-3">
+      <div className="intelligence-rail__signal">
         <p className="text-xs uppercase tracking-[0.16em] text-cyan-300">Interpretation</p>
         <p className="mt-1 font-semibold text-white">{risk.bidSupportLabel}</p>
       </div>
 
-      <div className="mt-3 rounded-md border border-emerald-400/20 bg-emerald-400/8 p-3">
+      <div className="intelligence-rail__signal intelligence-rail__signal--positive">
         <div className="flex items-center gap-2 text-emerald-200">
           <Activity size={16} aria-hidden="true" />
           <p className="text-xs uppercase tracking-[0.16em]">Pumpability</p>

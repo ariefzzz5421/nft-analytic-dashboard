@@ -30,7 +30,7 @@ export function EthUsdValue({
   return (
     <span
       aria-label={ariaLabel}
-      className={`group relative inline-flex w-fit cursor-help items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 ${className}`}
+      className={`eth-usd-value group relative inline-flex w-fit cursor-help items-center rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-cyan-300/40 ${className}`}
       tabIndex={hasEth ? 0 : undefined}
     >
       <span className="tabular-nums">
@@ -41,7 +41,7 @@ export function EthUsdValue({
       </span>
       {hasEth ? (
         <span
-          className="pointer-events-none absolute left-0 top-full z-50 mt-2 min-w-max whitespace-nowrap rounded-md border border-cyan-400/25 bg-slate-950 px-3 py-2 text-left text-xs font-normal text-slate-100 opacity-0 shadow-2xl shadow-cyan-950/30 transition duration-150 group-hover:opacity-100 group-focus-visible:opacity-100"
+          className="eth-usd-value__tooltip"
           role="tooltip"
         >
           <span className="block font-mono text-cyan-100">{usdValue !== null ? formatUsd(usdValue) : "USD unavailable"}</span>

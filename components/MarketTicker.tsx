@@ -13,7 +13,7 @@ function AnimatedNumber({ value }: { value: number }) {
   useEffect(() => {
     const startValue = displayRef.current;
     const delta = value - startValue;
-    const duration = 700;
+    const duration = 1200;
     const startedAt = performance.now();
     let frame = 0;
 
@@ -41,7 +41,7 @@ function PricePill({ asset }: { asset: MarketAssetPrice }) {
   const hasPrice = asset.priceUsd > 0;
 
   return (
-    <div className="inline-flex items-center gap-2 whitespace-nowrap rounded border border-slate-800 bg-slate-950/60 px-2.5 py-1">
+    <div className="market-quote">
       <TokenLogo className="h-5 w-5" symbol={asset.symbol} />
       <span className="font-semibold text-slate-100">{asset.symbol}</span>
       <span className="font-mono text-cyan-100 tabular-nums">
@@ -93,28 +93,28 @@ export function MarketTicker() {
     : "BTC/ETH/HYPE/BNB/SOL";
 
   return (
-    <div className="border-t border-slate-900/80 bg-slate-950/70">
-      <div className="mx-auto flex max-w-7xl items-center gap-3 overflow-hidden px-4 py-1.5 sm:px-6 lg:px-8">
-        <div className="inline-flex shrink-0 items-center gap-2 text-[11px] uppercase tracking-[0.16em] text-slate-600">
+    <div className="market-strip">
+      <div className="market-strip__inner">
+        <div className="market-strip__label">
           <Activity size={14} aria-hidden="true" />
           Market
         </div>
         <div
           aria-label={`Running prices for ${tickerLabel}`}
-          className="min-w-0 flex-1 overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_6%,black_94%,transparent)]"
+          className="market-strip__tape"
         >
-          <div className="price-tape-track flex w-max gap-3 will-change-transform hover:[animation-play-state:paused]">
+          <div className="price-tape-track flex w-max gap-6 hover:[animation-play-state:paused]">
             {assets.length > 0 ? (
               assets.map((asset) => <PricePill asset={asset} key={asset.symbol} />)
             ) : (
-              <div className="rounded-md border border-slate-800 bg-slate-950/80 px-3 py-1.5 text-xs text-slate-400">
+              <div className="market-strip__loading">
                 Loading BTC/ETH/HYPE/BNB/SOL prices...
               </div>
             )}
           </div>
         </div>
         {prices ? (
-          <span className="hidden shrink-0 text-[11px] text-slate-600 lg:inline">
+          <span className="market-strip__source">
             source: {prices.source}
           </span>
         ) : null}

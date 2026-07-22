@@ -22,9 +22,9 @@ type WatchlistCardProps = {
 
 function Stat({ children, label }: { children: ReactNode; label: string }) {
   return (
-    <div>
-      <p className="text-xs uppercase tracking-[0.14em] text-slate-500">{label}</p>
-      <p className="mt-1 font-mono text-sm text-slate-100">{children}</p>
+    <div className="watchlist-stat">
+      <p>{label}</p>
+      <strong>{children}</strong>
     </div>
   );
 }
@@ -53,24 +53,24 @@ export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }:
   const name = data?.collection.name ?? item.name ?? item.slug;
 
   return (
-    <article className="flex flex-col gap-4 rounded-lg border border-slate-800 bg-slate-950/82 p-4">
-      <div className="flex items-center gap-3">
-        <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-700 bg-slate-900">
+    <article className="watchlist-row">
+      <div className="watchlist-row__identity">
+        <div className="watchlist-row__art">
           {imageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img alt={name} className="h-full w-full object-cover" src={imageUrl} />
+            <img alt={name} src={imageUrl} />
           ) : (
             <span className="text-lg font-semibold text-cyan-200">{name.slice(0, 1)}</span>
           )}
         </div>
-        <div className="min-w-0">
-          <h3 className="truncate text-base font-semibold text-white">{name}</h3>
-          <p className="truncate font-mono text-xs text-cyan-200">{item.slug}</p>
+        <div className="watchlist-row__name">
+          <h3>{name}</h3>
+          <p>{item.slug}</p>
         </div>
       </div>
 
       {record.loading ? (
-        <div className="grid gap-2">
+        <div className="watchlist-row__loading">
           <div className="h-4 w-2/3 rounded bg-slate-800" />
           <div className="h-4 w-1/2 rounded bg-slate-800" />
           <div className="h-4 w-3/4 rounded bg-slate-800" />
@@ -78,13 +78,13 @@ export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }:
       ) : null}
 
       {record.error ? (
-        <div className="rounded-md border border-red-400/20 bg-red-400/8 p-3 text-sm text-red-100">
+        <div className="watchlist-row__error">
           {record.error}
         </div>
       ) : null}
 
       {data ? (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="watchlist-row__metrics">
           <Stat label="Floor">
             <EthUsdValue ethUsd={ethUsd} label="Floor" value={data.collection.floor} />
           </Stat>
@@ -106,15 +106,15 @@ export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }:
         </div>
       ) : null}
 
-      <div className="mt-auto grid grid-cols-2 gap-2">
+      <div className="watchlist-row__actions">
         <Link
-          className="inline-flex items-center justify-center rounded-md bg-cyan-300 px-3 py-2 text-sm font-bold text-slate-950 transition hover:bg-emerald-300"
+          className="button button--primary"
           href={`/collection/${item.slug}`}
         >
           Open Detail
         </Link>
         <a
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50"
+          className="button button--secondary"
           href={`https://opensea.io/collection/${item.slug}`}
           rel="noreferrer"
           target="_blank"
@@ -123,20 +123,20 @@ export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }:
           OpenSea
         </a>
         <button
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50"
+          className="icon-button"
           onClick={onRefresh}
           type="button"
         >
           <RefreshCw size={14} aria-hidden="true" />
-          Refresh
+          <span className="sr-only">Refresh {name}</span>
         </button>
         <button
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-red-400/25 px-3 py-2 text-sm text-red-100 transition hover:border-red-300"
+          className="icon-button icon-button--danger"
           onClick={onRemove}
           type="button"
         >
           <Trash2 size={14} aria-hidden="true" />
-          Remove
+          <span className="sr-only">Remove {name}</span>
         </button>
       </div>
     </article>

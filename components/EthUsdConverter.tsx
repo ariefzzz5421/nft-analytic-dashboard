@@ -1,7 +1,7 @@
 "use client";
 
 import { ChangeEvent, useMemo, useState } from "react";
-import { ChevronDown } from "lucide-react";
+import { TokenLogo } from "@/components/TokenLogo";
 import { formatDateTime, formatNumber } from "@/lib/format";
 
 type EthUsdConverterProps = {
@@ -25,42 +25,40 @@ export function EthUsdConverter({ ethUsd, lastUpdated, source = "market" }: EthU
   }
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
-      <div className="mx-auto max-w-3xl">
-        <div className="mb-4 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
+    <section className="converter-band">
+      <div className="converter-band__copy">
+        <div className="converter-band__title">
+          <TokenLogo className="h-8 w-8" symbol="ETH" />
           <div>
-            <h2 className="text-2xl font-semibold tracking-normal text-white">Konverter ETH</h2>
-            <p className="mt-1 text-sm text-slate-400">
+            <h2>ETH converter</h2>
+            <p>
               Live ETH price: {priceAvailable ? `$${formatNumber(ethUsd, 2)}` : "unavailable"}
               {source ? ` from ${source}` : ""}
             </p>
           </div>
-          {lastUpdated ? (
-            <p className="text-xs text-slate-500">Updated {formatDateTime(lastUpdated)}</p>
-          ) : null}
         </div>
+        {lastUpdated ? <span>Updated {formatDateTime(lastUpdated)}</span> : null}
+      </div>
 
-        <div className="overflow-hidden rounded-lg border border-slate-200 bg-white text-slate-950">
-          <div className="grid min-h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-b border-slate-200 px-4 sm:px-5">
+      <div className="converter-band__fields">
+          <label className="converter-field">
+            <span className="sr-only">ETH amount</span>
             <input
               aria-label="ETH amount"
-              className="min-w-0 bg-transparent font-mono text-2xl text-slate-950 outline-none placeholder:text-slate-300"
+              className="converter-field__input"
               inputMode="decimal"
               onChange={handleAmountChange}
               placeholder="0.0025"
               value={amount}
             />
-            <span className="font-mono text-xl text-slate-500">ETH</span>
-          </div>
-          <div className="grid min-h-20 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 sm:px-5">
-            <p className="min-w-0 truncate font-mono text-2xl text-slate-950">
+            <strong>ETH</strong>
+          </label>
+          <div className="converter-field converter-field--output" aria-live="polite">
+            <p>
               {usdValue !== null ? formatNumber(usdValue, 2) : "Unknown"}
             </p>
-            <span className="inline-flex items-center gap-1 font-mono text-xl text-slate-500">
-              USD <ChevronDown size={20} aria-hidden="true" />
-            </span>
+            <strong>USD</strong>
           </div>
-        </div>
       </div>
     </section>
   );

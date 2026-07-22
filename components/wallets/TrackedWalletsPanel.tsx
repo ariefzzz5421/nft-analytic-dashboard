@@ -79,7 +79,7 @@ function WalletCard({
   }, [onData, wallet.address]);
 
   return (
-    <article className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
+    <article className="wallet-ledger__row">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <h3 className="truncate font-semibold text-white">{wallet.label}</h3>
@@ -87,7 +87,7 @@ function WalletCard({
           {wallet.notes ? <p className="mt-2 text-sm text-slate-400">{wallet.notes}</p> : null}
         </div>
         <button
-          className="rounded-md border border-red-400/25 p-2 text-red-100 transition hover:border-red-300"
+          className="icon-button icon-button--danger"
           onClick={() => onRemove(wallet.address)}
           type="button"
         >
@@ -137,7 +137,7 @@ function WalletCard({
       ) : null}
 
       <a
-        className="mt-4 inline-flex items-center gap-2 rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50"
+        className="button button--secondary mt-4"
         href={`https://etherscan.io/address/${wallet.address}`}
         rel="noreferrer"
         target="_blank"
@@ -187,7 +187,7 @@ export function TrackedWalletsPanel({
   }
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
+    <section className="tracked-wallets">
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-white">Tracked wallets</h2>
         <p className="mt-1 text-sm leading-6 text-slate-400">
@@ -195,27 +195,27 @@ export function TrackedWalletsPanel({
         </p>
       </div>
 
-      <form className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.8fr)_minmax(0,1fr)_auto]" onSubmit={handleSubmit}>
+      <form className="tracked-wallets__form" onSubmit={handleSubmit}>
         <input
-          className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 font-mono text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
+          className="field field--mono"
           onChange={(event) => setAddress(event.target.value)}
           placeholder="0x wallet address"
           value={address}
         />
         <input
-          className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
+          className="field"
           onChange={(event) => setLabel(event.target.value)}
           placeholder="Creator wallet"
           value={label}
         />
         <input
-          className="h-10 rounded-md border border-slate-700 bg-slate-950 px-3 text-sm text-slate-100 outline-none transition placeholder:text-slate-600 focus:border-cyan-400"
+          className="field"
           onChange={(event) => setNotes(event.target.value)}
           placeholder="Notes"
           value={notes}
         />
         <button
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-md bg-cyan-300 px-3 text-sm font-bold text-slate-950 transition hover:bg-emerald-300"
+          className="button button--primary"
           type="submit"
         >
           <Plus size={15} aria-hidden="true" />
@@ -226,11 +226,11 @@ export function TrackedWalletsPanel({
       {formError ? <p className="mt-2 text-sm text-red-200">{formError}</p> : null}
 
       {wallets.length === 0 ? (
-        <div className="mt-4 rounded-md border border-dashed border-slate-700 p-5 text-sm text-slate-400">
+        <div className="empty-state empty-state--compact">
           Add labels like Creator wallet, Mint receiver, Deployer, Treasury, or Sweeper wallet.
         </div>
       ) : (
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="wallet-ledger">
           {wallets.map((wallet) => (
             <WalletCard
               key={wallet.address}

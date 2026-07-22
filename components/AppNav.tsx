@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, Eye, Gauge, Settings, WalletCards } from "lucide-react";
+import { Eye, Gauge, Settings, WalletCards } from "lucide-react";
 import { MarketTicker } from "@/components/MarketTicker";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
@@ -17,20 +17,20 @@ export function AppNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="sticky top-0 z-40 border-b border-slate-800/90 bg-slate-950/88 backdrop-blur">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:px-8">
-        <Link className="flex items-center gap-3" href="/">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md border border-cyan-400/25 bg-cyan-400/10 text-cyan-200">
-            <BarChart3 size={18} aria-hidden="true" />
-          </span>
-          <span>
-            <span className="block text-sm font-semibold text-white">NFT Sweep Depth</span>
-            <span className="block text-xs text-slate-500">Read-only analytics</span>
-          </span>
-        </Link>
+    <header className="app-chrome">
+      <MarketTicker />
+      <nav aria-label="Primary navigation" className="workspace-nav">
+        <div className="workspace-nav__inner">
+          <Link className="workspace-brand" href="/">
+            <span aria-hidden="true" className="workspace-brand__mark">SD</span>
+            <span className="workspace-brand__copy">
+              <span className="workspace-brand__name">sweep.depth</span>
+              <span className="workspace-brand__meta">NFT liquidity terminal</span>
+            </span>
+          </Link>
 
-        <div className="flex items-center gap-2 overflow-x-auto">
-          <div className="flex gap-1">
+          <div className="workspace-nav__tools">
+            <div className="workspace-nav__links">
             {navItems.map((item) => {
               const Icon = item.icon;
               const active =
@@ -42,11 +42,7 @@ export function AppNav() {
 
               return (
                 <Link
-                  className={`inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm transition ${
-                    active
-                      ? "bg-cyan-400/10 text-cyan-100"
-                      : "text-slate-400 hover:bg-slate-900 hover:text-slate-100"
-                  }`}
+                  className={`workspace-nav__link ${active ? "workspace-nav__link--active" : ""}`}
                   href={item.href}
                   key={item.href}
                 >
@@ -56,10 +52,10 @@ export function AppNav() {
               );
             })}
           </div>
-          <ThemeToggle />
+            <ThemeToggle />
+          </div>
         </div>
-      </div>
-      <MarketTicker />
-    </nav>
+      </nav>
+    </header>
   );
 }

@@ -9,11 +9,11 @@ export function WalletsPage() {
   const { addWallet, hydrated, items, removeWallet } = useWatchlist();
 
   return (
-    <main className="min-h-screen px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <header className="flex flex-col gap-4 border-b border-cyan-400/10 pb-6">
+    <main className="app-main">
+      <div className="app-frame support-page">
+        <header className="page-heading">
           <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-md border border-cyan-400/25 bg-cyan-400/10 text-cyan-200">
+            <span className="page-heading__icon">
               <WalletCards size={20} aria-hidden="true" />
             </span>
             <div>
@@ -26,13 +26,13 @@ export function WalletsPage() {
         </header>
 
         {hydrated && items.length === 0 ? (
-          <section className="rounded-lg border border-dashed border-slate-700 bg-slate-950/70 p-8 text-center">
+          <section className="empty-state">
             <h2 className="text-lg font-semibold text-white">No collections in watchlist</h2>
             <p className="mt-2 text-sm text-slate-400">
               Add a collection first, then attach tracked wallets on its detail page.
             </p>
             <Link
-              className="mt-4 inline-flex rounded-md bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-950 transition hover:bg-emerald-300"
+              className="button button--primary mt-4"
               href="/"
             >
               Open dashboard
@@ -42,14 +42,14 @@ export function WalletsPage() {
 
         <div className="grid gap-6">
           {items.map((item) => (
-            <section className="grid gap-3" key={item.slug}>
-              <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <section className="wallet-collection" key={item.slug}>
+              <div className="wallet-collection__header">
                 <div>
                   <h2 className="text-xl font-semibold text-white">{item.name ?? item.slug}</h2>
                   <p className="font-mono text-sm text-cyan-200">{item.slug}</p>
                 </div>
                 <Link
-                  className="inline-flex rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50"
+                  className="button button--secondary"
                   href={`/collection/${item.slug}`}
                 >
                   Open collection

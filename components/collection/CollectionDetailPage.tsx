@@ -315,36 +315,22 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
   }
 
   return (
-    <main className="min-h-screen px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <header className="rounded-lg border border-slate-800 bg-slate-950/80 p-4">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex min-w-0 items-center gap-4">
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-md border border-slate-700 bg-slate-900">
-                {data?.collection.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    alt={data.collection.name}
-                    className="h-full w-full object-cover"
-                    src={data.collection.imageUrl}
-                  />
-                ) : (
-                  <span className="text-xl font-semibold text-cyan-200">{slug.slice(0, 1)}</span>
-                )}
-              </div>
-              <div className="min-w-0">
-                <p className="text-sm text-slate-400">Collection detail</p>
-                <h1 className="truncate text-2xl font-semibold text-white sm:text-3xl">
+    <main className="app-main text-slate-100">
+      <div className="app-frame collection-shell">
+        <header className="collection-toolbar">
+          <div className="collection-toolbar__topline">
+            <div className="collection-toolbar__identity">
+              <p><Link href="/">Dashboard</Link> / Collection</p>
+              <h1>
                   {data?.collection.name ?? activeItem.name ?? slug}
                 </h1>
-                <p className="truncate font-mono text-sm text-cyan-200">{slug}</p>
-              </div>
+              <span>{slug}</span>
             </div>
 
-            <div className="flex flex-wrap gap-2">
+            <div className="collection-toolbar__actions">
               <RefreshRateControl compact onChange={setRefreshSeconds} />
               <a
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50"
+                className="button button--secondary"
                 href={`https://opensea.io/collection/${slug}`}
                 rel="noreferrer"
                 target="_blank"
@@ -353,7 +339,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                 OpenSea
               </a>
               <button
-                className="inline-flex items-center justify-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-3 py-2 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300"
+                className="button button--secondary"
                 onClick={refresh}
                 type="button"
               >
@@ -362,7 +348,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
               </button>
               {hydrated ? (
                 <button
-                  className="inline-flex items-center justify-center gap-2 rounded-md bg-cyan-300 px-3 py-2 text-sm font-bold text-slate-950 transition hover:bg-emerald-300"
+                  className="button button--primary"
                   onClick={toggleWatchlist}
                   type="button"
                 >
@@ -372,7 +358,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
               ) : null}
             </div>
           </div>
-          <div className="mt-4 flex flex-wrap gap-3 text-sm text-slate-400">
+          <div className="collection-toolbar__meta">
             <span>Last updated: {formatDateTime(data?.lastUpdated)}</span>
             {treasuryBalanceEth !== null ? (
               <span>
@@ -390,8 +376,8 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
           <>
             <CollectionSummary collection={data.collection} ethUsd={activeEthUsd} slug={data.slug} />
 
-            <section className="grid gap-6 xl:grid-cols-[minmax(0,1.25fr)_minmax(360px,0.75fr)]">
-              <div className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
+            <section className="sweep-workspace">
+              <div className="sweep-workspace__primary">
                 <div className="mb-4 flex flex-col gap-4">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                     <div>
@@ -615,7 +601,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
             <CreatorActivityCard data={data} ethUsd={activeEthUsd} />
             <HolderAnalysisCard data={data} ethUsd={activeEthUsd} />
 
-            <section className="grid gap-6 xl:grid-cols-2">
+            <section className="chart-pair">
               <SweepCostChart data={ladder} />
               <ListingDistributionChart data={data.listingDistribution} />
             </section>

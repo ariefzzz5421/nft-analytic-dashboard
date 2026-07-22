@@ -174,29 +174,36 @@ export function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen px-4 py-6 text-slate-100 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-        <header className="flex flex-col gap-5 border-b border-cyan-400/10 pb-6 lg:flex-row lg:items-end lg:justify-between">
-          <div className="max-w-3xl">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-400/25 bg-emerald-400/8 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-emerald-300">
+    <main className="app-main text-slate-100">
+      <div className="app-frame dashboard-shell">
+        <header className="dashboard-intro">
+          <div className="dashboard-intro__copy">
+            <div className="read-only-marker">
               <ShieldAlert size={14} aria-hidden="true" />
               Read-only
             </div>
-            <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-5xl">
-              NFT Sweep Depth
-            </h1>
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-300">
-              Estimate sweep cost to target floors.
+            <h1>NFT Sweep Depth</h1>
+            <p>
+              Inspect collection liquidity, estimate sweep cost, and trace creator and holder activity from one workspace.
             </p>
+          </div>
+          <div className="dashboard-intro__index" aria-hidden="true">
+            <span>COLLECTION</span>
+            <span>LIQUIDITY</span>
+            <span>RESEARCH</span>
           </div>
         </header>
 
-        <section className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
-          <form className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto_auto]" onSubmit={analyzeOnce}>
+        <section className="analysis-command">
+          <div className="analysis-command__label">
+            <Search aria-hidden="true" size={18} />
+            <span>Analyze a collection</span>
+          </div>
+          <form className="analysis-command__form" onSubmit={analyzeOnce}>
             <label className="min-w-0">
               <span className="sr-only">OpenSea collection URL or slug</span>
               <input
-                className="h-12 w-full rounded-md border border-slate-700 bg-slate-950 px-4 text-sm text-white outline-none transition placeholder:text-slate-600 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/15"
+                className="analysis-command__input"
                 disabled={loadingAction}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Paste OpenSea collection URL or slug"
@@ -204,7 +211,7 @@ export function DashboardPage() {
               />
             </label>
             <button
-              className={`inline-flex h-12 items-center justify-center gap-2 rounded-md border border-cyan-400/30 bg-cyan-400/10 px-4 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300 disabled:cursor-not-allowed disabled:opacity-60 ${
+              className={`button button--secondary ${
                 loadingAction ? "analyze-button-active" : ""
               }`}
               disabled={loadingAction}
@@ -218,7 +225,7 @@ export function DashboardPage() {
               Analyze
             </button>
             <button
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-cyan-300 px-4 text-sm font-bold text-slate-950 transition hover:bg-emerald-300 disabled:cursor-not-allowed disabled:opacity-60"
+              className="button button--primary"
               disabled={loadingAction}
               onClick={addToWatchlist}
               type="button"
@@ -233,14 +240,14 @@ export function DashboardPage() {
         {loadingAction ? <LoadingState /> : null}
 
         {oneOff && !loadingAction ? (
-          <section className="grid gap-4">
+          <section className="app-section analysis-result">
             <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-white">One-time analysis</h2>
                 <p className="text-sm text-slate-400">Not saved to watchlist.</p>
               </div>
               <Link
-                className="inline-flex items-center justify-center rounded-md border border-cyan-400/30 px-4 py-2 text-sm font-semibold text-cyan-100 transition hover:border-cyan-300"
+                className="button button--secondary"
                 href={`/collection/${oneOff.slug}`}
               >
                 Open detail
@@ -253,7 +260,7 @@ export function DashboardPage() {
           </section>
         ) : null}
 
-        <section className="grid gap-4" id="watchlist">
+        <section className="app-section watchlist-section" id="watchlist">
           <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-xl font-semibold text-white">Watchlist</h2>
@@ -264,7 +271,7 @@ export function DashboardPage() {
             <div className="flex flex-col gap-2 sm:flex-row">
               <RefreshRateControl compact onChange={setRefreshSeconds} />
               <button
-                className="inline-flex items-center justify-center rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50"
+                className="button button--secondary"
                 onClick={() => setRefreshNonce((value) => value + 1)}
                 type="button"
               >
@@ -274,7 +281,7 @@ export function DashboardPage() {
           </div>
 
           {hydrated && items.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-slate-700 bg-slate-950/60 p-8 text-center">
+            <div className="empty-ledger">
               <h3 className="text-lg font-semibold text-white">No collections saved yet</h3>
               <p className="mt-2 text-sm text-slate-400">
                 Add a collection slug like the-plimpo or paste an OpenSea URL.
@@ -282,7 +289,7 @@ export function DashboardPage() {
             </div>
           ) : null}
 
-          <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="watchlist-ledger">
             {items.map((item) => (
               <WatchlistCard
                 item={item}

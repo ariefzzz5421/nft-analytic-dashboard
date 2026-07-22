@@ -23,7 +23,7 @@ export function SweepCostChart({ data }: SweepCostChartProps) {
   }));
 
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
+    <section className="chart-panel">
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-white">Sweep Cost</h2>
         <p className="mt-1 text-sm text-slate-400">
@@ -33,15 +33,15 @@ export function SweepCostChart({ data }: SweepCostChartProps) {
       <div className="h-80">
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={chartData} margin={{ bottom: 8, left: 0, right: 8, top: 12 }}>
-            <CartesianGrid stroke="#1f2c36" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke="var(--color-chart-grid)" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="targetLabel"
-              stroke="#91a4b4"
+              stroke="var(--color-chart-axis)"
               tickLine={false}
               tick={{ fontSize: 12 }}
             />
             <YAxis
-              stroke="#91a4b4"
+              stroke="var(--color-chart-axis)"
               tickFormatter={(value) => `${value}`}
               tickLine={false}
               tick={{ fontSize: 12 }}
@@ -62,9 +62,9 @@ export function SweepCostChart({ data }: SweepCostChartProps) {
                   </div>
                 );
               }}
-              cursor={{ fill: "rgba(34, 211, 238, 0.08)" }}
+              cursor={{ fill: "var(--color-chart-cursor-primary)" }}
             />
-            <Bar dataKey="costEth" fill="#22d3ee" radius={[5, 5, 0, 0]} />
+            <Bar dataKey="costEth" fill="var(--color-chart-primary)" radius={[5, 5, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -72,6 +72,6 @@ export function SweepCostChart({ data }: SweepCostChartProps) {
         Sweep cost means the estimated total cost to buy every listed NFT below the
         selected target floor.
       </p>
-    </div>
+    </section>
   );
 }

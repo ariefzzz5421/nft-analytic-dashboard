@@ -169,10 +169,10 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
   }, [creatorAddress, data.slug]);
 
   return (
-    <section className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
-      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+    <section className="creator-ledger">
+      <div className="creator-ledger__header">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md border border-cyan-400/25 bg-cyan-400/10 text-cyan-100">
+          <div className="creator-ledger__icon">
             <UserRound size={19} aria-hidden="true" />
           </div>
           <div>
@@ -183,7 +183,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
           </div>
         </div>
         <button
-          className="inline-flex items-center justify-center gap-2 rounded-md border border-slate-700 px-3 py-2 text-sm text-slate-200 transition hover:border-cyan-400/50"
+          className="button button--secondary"
           onClick={() => {
             setEvents([]);
             setWallet(null);
@@ -213,20 +213,20 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
         </button>
       </div>
 
-      <div className="grid gap-3 lg:grid-cols-3">
-        <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+      <div className="creator-ledger__facts">
+        <div className="creator-ledger__fact">
           <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Creator address</p>
           <p className="mt-2 min-w-0">
             <AddressLink address={creatorAddress} label="Open creator on Etherscan" />
           </p>
         </div>
-        <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+        <div className="creator-ledger__fact">
           <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Contract address</p>
           <p className="mt-2 min-w-0">
             <AddressLink address={data.collection.creator.contractAddress} label="Open contract on Etherscan" />
           </p>
         </div>
-        <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+        <div className="creator-ledger__fact">
           <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Latest transaction</p>
           {latestEvent?.etherscanUrl ? (
             <a
@@ -257,7 +257,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
         </div>
       ) : null}
 
-      <div className="mt-3 rounded-md border border-slate-800 bg-slate-950/70 p-3">
+      <div className="creator-ledger__transactions">
         <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">
@@ -320,7 +320,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
                     </td>
                     <td className="px-3 py-3">
                       <a
-                        className="inline-flex items-center gap-1 rounded-md border border-slate-700 px-2 py-1 text-xs text-cyan-100 transition hover:border-cyan-400/50"
+                        className="button button--table"
                         href={`https://etherscan.io/tx/${transaction.hash}`}
                         rel="noreferrer"
                         target="_blank"
@@ -346,8 +346,8 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
       </div>
 
       {!loading ? (
-        <div className="mt-3 grid gap-3 lg:grid-cols-2">
-          <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+        <div className="creator-ledger__latest">
+          <div className="creator-ledger__event">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Latest creator activity</p>
             {latestCreatorEvent ? (
               <div className="mt-2 text-sm text-slate-300">
@@ -361,7 +361,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
               </p>
             )}
           </div>
-          <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+          <div className="creator-ledger__event">
             <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Latest collection activity</p>
             {latestEvent ? (
               <div className="mt-2 text-sm text-slate-300">

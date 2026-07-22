@@ -61,10 +61,10 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
   );
 
   return (
-    <section className="grid gap-4 rounded-lg border border-slate-800 bg-slate-950/82 p-4">
+    <section className="holder-ledger">
       <div>
-        <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-md border border-cyan-400/25 bg-cyan-400/10 text-cyan-100">
+        <div className="holder-ledger__header">
+          <div className="holder-ledger__icon">
             <Network size={20} aria-hidden="true" />
           </div>
           <div>
@@ -73,26 +73,26 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
           </div>
         </div>
 
-        <dl className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+        <dl className="holder-ledger__metrics">
+          <div className="holder-ledger__metric">
             <dt className="text-xs uppercase tracking-[0.16em] text-slate-500">Holders</dt>
             <dd className="mt-2 font-mono text-lg font-semibold text-white">
               {formatNumber(collection.owners, 0)}
             </dd>
           </div>
-          <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+          <div className="holder-ledger__metric">
             <dt className="text-xs uppercase tracking-[0.16em] text-slate-500">Holder spread</dt>
             <dd className="mt-2 font-mono text-lg font-semibold text-white">
               {formatPercent(ownerSpread)}
             </dd>
           </div>
-          <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+          <div className="holder-ledger__metric">
             <dt className="text-xs uppercase tracking-[0.16em] text-slate-500">Avg per holder</dt>
             <dd className="mt-2 font-mono text-lg font-semibold text-white">
               {formatNumber(averageItemsPerHolder, 2)}
             </dd>
           </div>
-          <div className="rounded-md border border-slate-800 bg-slate-950/70 p-3">
+          <div className="holder-ledger__metric">
             <dt className="text-xs uppercase tracking-[0.16em] text-slate-500">Active listed wallets</dt>
             <dd className="mt-2 font-mono text-lg font-semibold text-white">
               {formatNumber(activeSellerCount, 0)}
@@ -101,7 +101,7 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
         </dl>
       </div>
 
-      <div className="overflow-hidden rounded-md border border-slate-800 bg-slate-950/70">
+      <div className="holder-ledger__table">
         <div className="grid grid-cols-[52px_minmax(0,1.1fr)_150px_130px_120px] gap-3 border-b border-slate-800 px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 max-lg:hidden">
           <span>Rank</span>
           <span>Holder</span>
@@ -127,7 +127,7 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
                   <span className="font-mono text-slate-500">#{(activePage - 1) * holdersPerPage + index + 1}</span>
                   <div className="min-w-0">
                     <div className="flex min-w-0 items-center gap-2">
-                      <p className="truncate font-mono text-white">{holder.id}</p>
+                      <p className="min-w-0 flex-1 truncate font-mono text-white">{formatAddress(holder.id)}</p>
                       <a
                         aria-label={`Open ${holder.label} on Etherscan`}
                         className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-700 text-slate-400 transition hover:border-cyan-400/60 hover:text-cyan-100"
@@ -161,7 +161,7 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
       </div>
 
       {topHolders.length > holdersPerPage ? (
-        <div className="flex flex-col gap-3 rounded-md border border-slate-800 bg-slate-950/70 p-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="holder-ledger__pagination">
           <p className="text-sm text-slate-400">
             Showing {formatNumber((activePage - 1) * holdersPerPage + 1, 0)}-
             {formatNumber(Math.min(activePage * holdersPerPage, topHolders.length), 0)} of{" "}

@@ -18,7 +18,7 @@ type ListingDistributionChartProps = {
 
 export function ListingDistributionChart({ data }: ListingDistributionChartProps) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/82 p-4">
+    <section className="chart-panel">
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-white">Listing Distribution</h2>
         <p className="mt-1 text-sm text-slate-400">
@@ -28,15 +28,15 @@ export function ListingDistributionChart({ data }: ListingDistributionChartProps
       <div className="h-80">
         <ResponsiveContainer height="100%" width="100%">
           <BarChart data={data} margin={{ bottom: 8, left: 0, right: 8, top: 12 }}>
-            <CartesianGrid stroke="#1f2c36" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke="var(--color-chart-grid)" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="bucket"
               interval={0}
-              stroke="#91a4b4"
+              stroke="var(--color-chart-axis)"
               tickLine={false}
               tick={{ fontSize: 11 }}
             />
-            <YAxis stroke="#91a4b4" tickLine={false} tick={{ fontSize: 12 }} />
+            <YAxis stroke="var(--color-chart-axis)" tickLine={false} tick={{ fontSize: 12 }} />
             <Tooltip
               content={({ active, label, payload }) => {
                 if (!active || !payload?.length) {
@@ -53,12 +53,12 @@ export function ListingDistributionChart({ data }: ListingDistributionChartProps
                   </div>
                 );
               }}
-              cursor={{ fill: "rgba(16, 185, 129, 0.08)" }}
+              cursor={{ fill: "var(--color-chart-cursor-positive)" }}
             />
-            <Bar dataKey="count" fill="#34d399" radius={[5, 5, 0, 0]} />
+            <Bar dataKey="count" fill="var(--color-chart-positive)" radius={[5, 5, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </section>
   );
 }

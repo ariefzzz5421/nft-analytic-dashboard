@@ -1,0 +1,9 @@
+{
+  "date": "2026-07-19",
+  "framework": "Next.js 16.2.9 App Router",
+  "font": "Inter/system stack hard-coded in app/globals.css",
+  "palette": "Hex root tokens plus direct Tailwind slate/cyan utilities",
+  "motion": "No motion library; CSS ticker and analyze loading animation",
+  "spacing": "Tailwind defaults; no semantic scale",
+  "preserve": ["Tailwind 4", "Lucide icons", "dark/light toggle", "read-only behavior"]
+}

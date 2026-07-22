@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Moon, Sun } from "lucide-react";
 
 const STORAGE_KEY = "nft-sweep-depth-theme";
 
@@ -17,7 +18,8 @@ export function ThemeToggle() {
   useEffect(() => {
     const timeout = window.setTimeout(() => {
       const saved = window.localStorage.getItem(STORAGE_KEY);
-      const initialMode: ThemeMode = saved === "light" ? "light" : "dark";
+      const prefersLight = window.matchMedia("(prefers-color-scheme: light)").matches;
+      const initialMode: ThemeMode = saved === "light" || (!saved && prefersLight) ? "light" : "dark";
 
       setMode(initialMode);
       applyTheme(initialMode);
@@ -37,12 +39,12 @@ export function ThemeToggle() {
   return (
     <button
       aria-label={`Switch to ${mode === "dark" ? "light" : "dark"} mode`}
-      className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-slate-700 text-lg text-slate-200 transition hover:border-cyan-400/60 hover:text-cyan-100"
+      className="theme-toggle"
       onClick={toggleTheme}
       title={mode === "dark" ? "Light mode" : "Dark mode"}
       type="button"
     >
-      {mode === "dark" ? "☀" : "☾"}
+      {mode === "dark" ? <Sun aria-hidden="true" size={17} /> : <Moon aria-hidden="true" size={17} />}
     </button>
   );
 }
