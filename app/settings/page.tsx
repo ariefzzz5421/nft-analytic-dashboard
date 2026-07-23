@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getEthUsdFallback } from "@/lib/opensea";
+import { getApeUsdFallback, getEthUsdFallback } from "@/lib/opensea";
 import { OPENSEA_REFRESH_POLICY } from "@/lib/refresh";
 
 export const metadata: Metadata = {
@@ -51,6 +51,7 @@ export default function SettingsPage() {
             value={etherscanConfigured ? "configured" : "missing"}
           />
           <StatusRow label="ETH/USD fallback" status="info" value={String(getEthUsdFallback())} />
+          <StatusRow label="APE/USD fallback" status="info" value={String(getApeUsdFallback())} />
           <StatusRow label="Watchlist storage" status="info" value="localStorage" />
         </section>
 
@@ -81,7 +82,7 @@ export default function SettingsPage() {
         <section className="settings-section">
           <h2 className="text-lg font-semibold text-white">Market price API</h2>
           <p className="mt-2 text-sm leading-6 text-slate-400">
-            BTC, ETH, HYPE, BNB, and SOL ticker uses backend route `/api/market/prices`.
+            BTC, ETH, APE, HYPE, BNB, and SOL ticker uses backend route `/api/market/prices`.
             Primary source is CoinGecko Simple Price API. If that fails, the backend falls back
             to Yahoo Finance chart data where available.
           </p>
@@ -100,6 +101,7 @@ export default function SettingsPage() {
             <li>Add OPENSEA_API_KEY in Vercel project environment variables.</li>
             <li>Add ETHERSCAN_API_KEY in Vercel project environment variables if wallet tracker is used.</li>
             <li>Add ETH_USD_FALLBACK for the manual ETH/USD conversion value.</li>
+            <li>Add APE_USD_FALLBACK only if you want a manual fallback for ApeChain.</li>
             <li>Do not expose server keys with NEXT_PUBLIC_.</li>
           </ul>
         </section>

@@ -9,6 +9,14 @@ export function formatNumber(value: number | null | undefined, maximumFractionDi
 }
 
 export function formatEth(value: number | null | undefined, fallback = "Unknown") {
+  return formatNative(value, "ETH", fallback);
+}
+
+export function formatNative(
+  value: number | null | undefined,
+  symbol: string,
+  fallback = "Unknown",
+) {
   if (value === null || value === undefined || !Number.isFinite(value)) {
     return fallback;
   }
@@ -17,7 +25,7 @@ export function formatEth(value: number | null | undefined, fallback = "Unknown"
   return `${new Intl.NumberFormat("en-US", {
     maximumFractionDigits: fractionDigits,
     minimumFractionDigits: value > 0 && value < 0.001 ? 6 : 0,
-  }).format(value)} ETH`;
+  }).format(value)} ${symbol}`;
 }
 
 export function formatUsd(value: number | null | undefined) {

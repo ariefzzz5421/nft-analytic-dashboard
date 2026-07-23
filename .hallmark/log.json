@@ -1,5 +1,13 @@
 [
   {
+    "date": "2026-07-23",
+    "scope": "app",
+    "macrostructure": "05 Workbench",
+    "theme": "Signal Workbench",
+    "enrichment": "real NFT artwork",
+    "brief": "Multi-chain NFT analytics redesign with Ethereum and ApeChain auto-detection"
+  },
+  {
     "date": "2026-07-19",
     "scope": "app",
     "macrostructure": "08 Photographic",

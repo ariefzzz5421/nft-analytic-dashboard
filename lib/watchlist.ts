@@ -3,12 +3,19 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DEFAULT_TARGET_FLOORS } from "@/lib/sweep";
 import type { TrackedWallet, WatchlistItem } from "@/lib/types";
+import {
+  getWatchlistKey,
+  parseSupportedChain,
+  type SupportedChain,
+} from "@/lib/chains";
 
 const WATCHLIST_STORAGE_KEY = "nft-sweep-depth-watchlist:v1";
 
 function normalizeItem(item: Partial<WatchlistItem> & { slug: string }): WatchlistItem {
   return {
     addedAt: item.addedAt ?? new Date().toISOString(),
+    chain: parseSupportedChain(item.chain),
+    contractAddress: item.contractAddress ?? null,
     devWallets: item.devWallets ?? [],
     imageUrl: item.imageUrl ?? null,
     name: item.name,
@@ -78,7 +85,10 @@ export function useWatchlist() {
   const upsertItem = useCallback(
     (item: Partial<WatchlistItem> & { slug: string }) => {
       const current = readWatchlist();
-      const existing = current.find((candidate) => candidate.slug === item.slug);
+      const chain = parseSupportedChain(item.chain);
+      const existing = current.find(
+        (candidate) => getWatchlistKey(candidate.slug, candidate.chain) === getWatchlistKey(item.slug, chain),
+      );
       const nextItem = normalizeItem({
         ...existing,
         ...item,
@@ -88,7 +98,10 @@ export function useWatchlist() {
       });
       const nextItems = [
         nextItem,
-        ...current.filter((candidate) => candidate.slug !== item.slug),
+        ...current.filter(
+          (candidate) =>
+            getWatchlistKey(candidate.slug, candidate.chain) !== getWatchlistKey(item.slug, chain),
+        ),
       ].sort((left, right) => right.addedAt.localeCompare(left.addedAt));
 
       persist(nextItems);
@@ -98,18 +111,24 @@ export function useWatchlist() {
   );
 
   const removeItem = useCallback(
-    (slug: string) => {
-      persist(readWatchlist().filter((item) => item.slug !== slug));
+    (slug: string, chain: SupportedChain = "ethereum") => {
+      const key = getWatchlistKey(slug, chain);
+      persist(
+        readWatchlist().filter((item) => getWatchlistKey(item.slug, item.chain) !== key),
+      );
     },
     [persist],
   );
 
   const updateTargetFloors = useCallback(
-    (slug: string, targetFloors: number[]) => {
+    (slug: string, targetFloors: number[], chain: SupportedChain = "ethereum") => {
       const current = readWatchlist();
+      const key = getWatchlistKey(slug, chain);
       persist(
         current.map((item) =>
-          item.slug === slug ? normalizeItem({ ...item, targetFloors }) : item,
+          getWatchlistKey(item.slug, item.chain) === key
+            ? normalizeItem({ ...item, targetFloors })
+            : item,
         ),
       );
     },
@@ -117,11 +136,12 @@ export function useWatchlist() {
   );
 
   const addWallet = useCallback(
-    (slug: string, wallet: TrackedWallet) => {
+    (slug: string, wallet: TrackedWallet, chain: SupportedChain = "ethereum") => {
       const current = readWatchlist();
+      const key = getWatchlistKey(slug, chain);
       persist(
         current.map((item) => {
-          if (item.slug !== slug) {
+          if (getWatchlistKey(item.slug, item.chain) !== key) {
             return item;
           }
 
@@ -140,11 +160,12 @@ export function useWatchlist() {
   );
 
   const removeWallet = useCallback(
-    (slug: string, address: string) => {
+    (slug: string, address: string, chain: SupportedChain = "ethereum") => {
       const current = readWatchlist();
+      const key = getWatchlistKey(slug, chain);
       persist(
         current.map((item) =>
-          item.slug === slug
+          getWatchlistKey(item.slug, item.chain) === key
             ? normalizeItem({
                 ...item,
                 devWallets: item.devWallets.filter(
@@ -161,9 +182,13 @@ export function useWatchlist() {
   const bySlug = useMemo(() => {
     return new Map(items.map((item) => [item.slug, item]));
   }, [items]);
+  const byKey = useMemo(() => {
+    return new Map(items.map((item) => [getWatchlistKey(item.slug, item.chain), item]));
+  }, [items]);
 
   return {
     addWallet,
+    byKey,
     bySlug,
     hydrated,
     items,
@@ -174,6 +199,9 @@ export function useWatchlist() {
   };
 }
 
-export function getDefaultWatchlistItem(slug: string): WatchlistItem {
-  return normalizeItem({ slug });
+export function getDefaultWatchlistItem(
+  slug: string,
+  chain: SupportedChain = "ethereum",
+): WatchlistItem {
+  return normalizeItem({ chain, slug });
 }

@@ -1,22 +1,24 @@
-/* Hallmark · genre: atmospheric · macrostructure: 08 Photographic · theme: Midnight · enrichment: real NFT artwork · nav: N3 workspace rail · footer: Ft2 · contrast: pass (40-41) · slop: pass (42-49) · mobile: pass (34, 49-57) */
-/* Hallmark · pre-emit critique: P5 H5 E4 S5 R5 V4 */
+/* Hallmark · genre: modern-minimal · macrostructure: 05 Workbench · design-system: design.md · designed-as-app */
+/* Hallmark · pre-emit critique: P5 H5 E5 S5 R5 V5 */
 
 :root {
-  --color-paper: oklch(13% 0.014 248);
-  --color-paper-2: oklch(17% 0.014 248);
-  --color-paper-3: oklch(20.5% 0.015 248);
-  --color-paper-4: oklch(24% 0.015 248);
-  --color-ink: oklch(95% 0.008 220);
-  --color-ink-2: oklch(84% 0.01 225);
-  --color-muted: oklch(67% 0.014 235);
-  --color-muted-strong: oklch(57% 0.014 235);
-  --color-rule: oklch(28% 0.016 242);
-  --color-rule-strong: oklch(38% 0.018 238);
-  --color-accent: oklch(76% 0.14 190);
-  --color-accent-hover: oklch(83% 0.13 190);
-  --color-accent-ink: oklch(13% 0.02 220);
+  --color-paper: oklch(10.5% 0.012 255);
+  --color-paper-2: oklch(14.5% 0.014 252);
+  --color-paper-3: oklch(18.5% 0.016 250);
+  --color-paper-4: oklch(22% 0.017 248);
+  --color-ink: oklch(96% 0.008 220);
+  --color-ink-2: oklch(83% 0.012 225);
+  --color-muted: oklch(64% 0.016 235);
+  --color-muted-strong: oklch(53% 0.016 238);
+  --color-rule: oklch(25% 0.018 248);
+  --color-rule-strong: oklch(34% 0.022 242);
+  --color-accent: oklch(80% 0.17 165);
+  --color-accent-hover: oklch(87% 0.15 165);
+  --color-accent-ink: oklch(11% 0.025 165);
   --color-accent-border: color-mix(in oklch, var(--color-accent), transparent 60%);
-  --color-focus: oklch(80% 0.13 190);
+  --color-focus: oklch(83% 0.16 165);
+  --color-network-ethereum: oklch(72% 0.15 285);
+  --color-network-apechain: oklch(82% 0.16 78);
   --color-success: oklch(76% 0.14 150);
   --color-positive: var(--color-success);
   --color-warning: oklch(79% 0.14 75);
@@ -61,9 +63,9 @@
 
   --rule-thin: 1px;
   --rule-thick: 2px;
-  --radius-control: 0.375rem;
-  --radius-panel: 0.5rem;
-  --radius-media: 0.5rem;
+  --radius-control: 0.25rem;
+  --radius-panel: 0.375rem;
+  --radius-media: 0.25rem;
 
   --z-base: 1;
   --z-raised: 10;
@@ -106,21 +108,21 @@
 
 .theme-light {
   color-scheme: light;
-  --color-paper: oklch(97.5% 0.008 245);
-  --color-paper-2: oklch(94% 0.01 245);
-  --color-paper-3: oklch(90% 0.012 245);
-  --color-paper-4: oklch(86% 0.014 245);
-  --color-ink: oklch(19% 0.02 245);
-  --color-ink-2: oklch(29% 0.018 245);
-  --color-muted: oklch(46% 0.016 245);
-  --color-muted-strong: oklch(55% 0.015 245);
-  --color-rule: oklch(82% 0.014 245);
+  --color-paper: oklch(98% 0.006 245);
+  --color-paper-2: oklch(95% 0.008 245);
+  --color-paper-3: oklch(91% 0.01 245);
+  --color-paper-4: oklch(87% 0.012 245);
+  --color-ink: oklch(17% 0.02 245);
+  --color-ink-2: oklch(28% 0.018 245);
+  --color-muted: oklch(44% 0.016 245);
+  --color-muted-strong: oklch(54% 0.015 245);
+  --color-rule: oklch(84% 0.014 245);
   --color-rule-strong: oklch(72% 0.018 245);
-  --color-accent: oklch(52% 0.15 205);
-  --color-accent-hover: oklch(45% 0.15 205);
-  --color-accent-ink: oklch(98% 0.006 225);
+  --color-accent: oklch(48% 0.15 165);
+  --color-accent-hover: oklch(40% 0.15 165);
+  --color-accent-ink: oklch(99% 0.004 165);
   --color-accent-border: color-mix(in oklch, var(--color-accent), transparent 55%);
-  --color-focus: oklch(48% 0.18 205);
+  --color-focus: oklch(45% 0.17 165);
   --color-success: oklch(50% 0.13 150);
   --color-positive: var(--color-success);
   --color-warning: oklch(56% 0.14 75);

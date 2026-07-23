@@ -1,4 +1,6 @@
-export type SupportedCurrency = "ETH" | "WETH";
+import type { NativeCurrencySymbol, SupportedChain } from "@/lib/chains";
+
+export type SupportedCurrency = "ETH" | "WETH" | "APE" | "WAPE";
 
 export type NormalizedListing = {
   tokenId: string;
@@ -65,6 +67,8 @@ export type TrackedWallet = {
 };
 
 export type WatchlistItem = {
+  chain: SupportedChain;
+  contractAddress?: string | null;
   slug: string;
   name?: string;
   imageUrl?: string | null;
@@ -85,6 +89,8 @@ export type WalletTransaction = {
 
 export type WalletApiResponse = {
   address: string;
+  chain: SupportedChain;
+  currencySymbol: NativeCurrencySymbol;
   balanceEth: number;
   balanceUsd: number;
   txCount: number;
@@ -93,7 +99,7 @@ export type WalletApiResponse = {
   recentTransactions: WalletTransaction[];
 };
 
-export type MarketSymbol = "BTC" | "ETH" | "HYPE" | "BNB" | "SOL";
+export type MarketSymbol = "BTC" | "ETH" | "APE" | "HYPE" | "BNB" | "SOL";
 
 export type MarketPriceSource = "coingecko" | "yahoo" | "fallback";
 
@@ -113,8 +119,14 @@ export type MarketPricesResponse = {
 };
 
 export type SweepApiResponse = {
+  chain: SupportedChain;
   slug: string;
   ethUsd: number;
+  nativeCurrency: {
+    symbol: NativeCurrencySymbol;
+    wrappedSymbol: "WETH" | "WAPE";
+  };
+  nativeUsd: number;
   refreshPolicy: OpenSeaRefreshPolicy;
   collection: CollectionSummaryData;
   sweepLadder: SweepLadderRow[];
@@ -161,8 +173,17 @@ export type NormalizedActivityEvent = {
 };
 
 export type ActivityApiResponse = {
+  chain: SupportedChain;
   slug: string;
   events: NormalizedActivityEvent[];
   next: string | null;
   warnings: string[];
+};
+
+export type CollectionResolution = {
+  chain: SupportedChain;
+  collectionName: string | null;
+  contractAddress: string | null;
+  detectedFrom: "contract" | "slug";
+  slug: string;
 };

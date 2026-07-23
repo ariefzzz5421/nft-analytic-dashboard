@@ -6,12 +6,14 @@ import type { SweepLadderRow } from "@/lib/types";
 type SweepLadderTableProps = {
   ethUsd?: number | null;
   ladder: SweepLadderRow[];
+  symbol?: string;
   treasuryBalanceEth?: number | null;
 };
 
 export function SweepLadderTable({
   ethUsd,
   ladder,
+  symbol = "ETH",
   treasuryBalanceEth = null,
 }: SweepLadderTableProps) {
   const showTreasury = treasuryBalanceEth !== null && Number.isFinite(treasuryBalanceEth);
@@ -23,7 +25,7 @@ export function SweepLadderTable({
           <tr className="border-b border-slate-800 text-xs uppercase tracking-[0.16em] text-slate-500">
             <th className="px-3 py-3 font-semibold">Target floor</th>
             <th className="px-3 py-3 font-semibold">Items to sweep</th>
-            <th className="px-3 py-3 font-semibold">Estimated cost ETH</th>
+            <th className="px-3 py-3 font-semibold">Estimated cost {symbol}</th>
             <th className="px-3 py-3 font-semibold">Estimated cost USD</th>
             <th className="px-3 py-3 font-semibold">Average buy price</th>
             <th className="px-3 py-3 font-semibold">Notes</th>
@@ -41,7 +43,7 @@ export function SweepLadderTable({
               coverage !== null
                 ? `${formatRatio(coverage)} tracked-wallet coverage. ${getTreasuryCoverageLabel(coverage)}.`
                 : row.itemsToSweep === 0
-                  ? "No ETH/WETH listings below this target."
+                  ? `No ${symbol} listings below this target.`
                   : "Target is above current floor.";
 
             return (
@@ -50,15 +52,15 @@ export function SweepLadderTable({
                 key={row.targetFloor}
               >
                 <td className="px-3 py-4 font-mono text-cyan-200">
-                  <EthUsdValue ethUsd={ethUsd} label="Target floor" showInlineUsd value={row.targetFloor} />
+                  <EthUsdValue ethUsd={ethUsd} label="Target floor" showInlineUsd symbol={symbol} value={row.targetFloor} />
                 </td>
                 <td className="px-3 py-4 font-mono">{row.itemsToSweep}</td>
                 <td className="px-3 py-4 font-mono">
-                  <EthUsdValue ethUsd={ethUsd} label="Estimated cost" value={row.costEth} />
+                  <EthUsdValue ethUsd={ethUsd} label="Estimated cost" symbol={symbol} value={row.costEth} />
                 </td>
                 <td className="px-3 py-4 font-mono">{formatUsd(costUsd)}</td>
                 <td className="px-3 py-4 font-mono">
-                  <EthUsdValue ethUsd={ethUsd} label="Average buy price" value={row.avgPriceEth} />
+                  <EthUsdValue ethUsd={ethUsd} label="Average buy price" symbol={symbol} value={row.avgPriceEth} />
                 </td>
                 <td className="px-3 py-4 text-slate-400">{note}</td>
               </tr>

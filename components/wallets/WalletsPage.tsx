@@ -4,6 +4,8 @@ import Link from "next/link";
 import { WalletCards } from "lucide-react";
 import { TrackedWalletsPanel } from "@/components/wallets/TrackedWalletsPanel";
 import { useWatchlist } from "@/lib/watchlist";
+import { getCollectionHref, getWatchlistKey } from "@/lib/chains";
+import { NetworkBadge } from "@/components/NetworkBadge";
 
 export function WalletsPage() {
   const { addWallet, hydrated, items, removeWallet } = useWatchlist();
@@ -42,22 +44,26 @@ export function WalletsPage() {
 
         <div className="grid gap-6">
           {items.map((item) => (
-            <section className="wallet-collection" key={item.slug}>
+            <section className="wallet-collection" key={getWatchlistKey(item.slug, item.chain)}>
               <div className="wallet-collection__header">
                 <div>
-                  <h2 className="text-xl font-semibold text-white">{item.name ?? item.slug}</h2>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <h2 className="text-xl font-semibold text-white">{item.name ?? item.slug}</h2>
+                    <NetworkBadge chain={item.chain} compact />
+                  </div>
                   <p className="font-mono text-sm text-cyan-200">{item.slug}</p>
                 </div>
                 <Link
                   className="button button--secondary"
-                  href={`/collection/${item.slug}`}
+                  href={getCollectionHref(item.slug, item.chain)}
                 >
                   Open collection
                 </Link>
               </div>
               <TrackedWalletsPanel
-                addWallet={(wallet) => addWallet(item.slug, wallet)}
-                removeWallet={(address) => removeWallet(item.slug, address)}
+                addWallet={(wallet) => addWallet(item.slug, wallet, item.chain)}
+                chain={item.chain}
+                removeWallet={(address) => removeWallet(item.slug, address, item.chain)}
                 wallets={item.devWallets}
               />
             </section>

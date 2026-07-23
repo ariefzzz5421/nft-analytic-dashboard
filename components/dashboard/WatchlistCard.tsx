@@ -4,7 +4,9 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { ExternalLink, RefreshCw, Trash2 } from "lucide-react";
 import { EthUsdValue } from "@/components/EthUsdValue";
+import { NetworkBadge } from "@/components/NetworkBadge";
 import { formatPercent } from "@/lib/format";
+import { getCollectionHref } from "@/lib/chains";
 import { calculateSweepLadder, DEFAULT_TARGET_FLOORS, generateSmartTargets } from "@/lib/sweep";
 import type { SweepApiResponse, WatchlistItem } from "@/lib/types";
 
@@ -38,7 +40,8 @@ function isDefaultTargetSet(targets: number[]) {
 
 export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }: WatchlistCardProps) {
   const data = record.data;
-  const ethUsd = liveEthUsd ?? data?.ethUsd ?? null;
+  const nativeUsd = liveEthUsd ?? data?.nativeUsd ?? null;
+  const symbol = data?.nativeCurrency.symbol ?? (item.chain === "ape_chain" ? "APE" : "ETH");
   const smartTargets = data ? generateSmartTargets(data.collection.floor ?? 0) : [];
   const targetFloors =
     item.targetFloors.length && !isDefaultTargetSet(item.targetFloors)
@@ -66,6 +69,7 @@ export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }:
         <div className="watchlist-row__name">
           <h3>{name}</h3>
           <p>{item.slug}</p>
+          <NetworkBadge chain={item.chain} compact />
         </div>
       </div>
 
@@ -86,22 +90,22 @@ export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }:
       {data ? (
         <div className="watchlist-row__metrics">
           <Stat label="Floor">
-            <EthUsdValue ethUsd={ethUsd} label="Floor" value={data.collection.floor} />
+            <EthUsdValue ethUsd={nativeUsd} label="Floor" symbol={symbol} value={data.collection.floor} />
           </Stat>
           <Stat label="Top offer">
-            <EthUsdValue ethUsd={ethUsd} label="Top offer" value={data.collection.topOffer} />
+            <EthUsdValue ethUsd={nativeUsd} label="Top offer" symbol={symbol} value={data.collection.topOffer} />
           </Stat>
           <Stat label="Listed">{String(data.collection.listedCount)}</Stat>
           <Stat label="Listed %">{formatPercent(data.collection.listedPercentage)}</Stat>
           <Stat label="24h volume">
-            <EthUsdValue ethUsd={ethUsd} label="24h volume" value={data.collection.volume24h} />
+            <EthUsdValue ethUsd={nativeUsd} label="24h volume" symbol={symbol} value={data.collection.volume24h} />
           </Stat>
           <Stat label="Risk">{data.risk.bidSupportLabel}</Stat>
           <Stat label="Lowest target cost">
-            <EthUsdValue ethUsd={ethUsd} label="Lowest target cost" value={lowestTarget?.costEth} />
+            <EthUsdValue ethUsd={nativeUsd} label="Lowest target cost" symbol={symbol} value={lowestTarget?.costEth} />
           </Stat>
           <Stat label="Highest target cost">
-            <EthUsdValue ethUsd={ethUsd} label="Highest target cost" value={highestTarget?.costEth} />
+            <EthUsdValue ethUsd={nativeUsd} label="Highest target cost" symbol={symbol} value={highestTarget?.costEth} />
           </Stat>
         </div>
       ) : null}
@@ -109,7 +113,7 @@ export function WatchlistCard({ item, liveEthUsd, onRefresh, onRemove, record }:
       <div className="watchlist-row__actions">
         <Link
           className="button button--primary"
-          href={`/collection/${item.slug}`}
+          href={getCollectionHref(item.slug, item.chain)}
         >
           Open Detail
         </Link>

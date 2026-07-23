@@ -2,19 +2,26 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { ExternalLink, Plus, Trash2 } from "lucide-react";
-import { formatAddress, formatDateTime, formatEth, formatUsd } from "@/lib/format";
+import { formatAddress, formatDateTime, formatNative, formatUsd } from "@/lib/format";
+import {
+  getAddressExplorerUrl,
+  getChainConfig,
+  type SupportedChain,
+} from "@/lib/chains";
 import type { ApiErrorResponse, TrackedWallet, WalletApiResponse } from "@/lib/types";
 
 type TrackedWalletsPanelProps = {
   addWallet: (wallet: TrackedWallet) => void;
+  chain: SupportedChain;
   ethUsd?: number;
   onWalletData?: (address: string, wallet: WalletApiResponse | null) => void;
   removeWallet: (address: string) => void;
   wallets: TrackedWallet[];
 };
 
-async function fetchWallet(address: string) {
-  const response = await fetch(`/api/wallet/${encodeURIComponent(address)}`);
+async function fetchWallet(address: string, chain: SupportedChain) {
+  const params = new URLSearchParams({ chain });
+  const response = await fetch(`/api/wallet/${encodeURIComponent(address)}?${params.toString()}`);
   const payload = (await response.json()) as WalletApiResponse | ApiErrorResponse;
 
   if (!response.ok) {
@@ -31,10 +38,12 @@ function normalizeAddress(address: string) {
 function WalletCard({
   onData,
   onRemove,
+  chain,
   wallet,
 }: {
   onData?: (address: string, wallet: WalletApiResponse | null) => void;
   onRemove: (address: string) => void;
+  chain: SupportedChain;
   wallet: TrackedWallet;
 }) {
   const [data, setData] = useState<WalletApiResponse | null>(null);
@@ -48,7 +57,7 @@ function WalletCard({
       .then(async () => {
         setLoading(true);
         setError("");
-        return fetchWallet(wallet.address);
+        return fetchWallet(wallet.address, chain);
       })
       .then((response) => {
         if (cancelled) {
@@ -76,7 +85,9 @@ function WalletCard({
     return () => {
       cancelled = true;
     };
-  }, [onData, wallet.address]);
+  }, [chain, onData, wallet.address]);
+
+  const chainConfig = getChainConfig(chain);
 
   return (
     <article className="wallet-ledger__row">
@@ -114,8 +125,8 @@ function WalletCard({
       {data ? (
         <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
           <div>
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">ETH balance</p>
-            <p className="mt-1 font-mono text-slate-100">{formatEth(data.balanceEth)}</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">{data.currencySymbol} balance</p>
+            <p className="mt-1 font-mono text-slate-100">{formatNative(data.balanceEth, data.currencySymbol)}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-[0.14em] text-slate-500">USD balance</p>
@@ -126,8 +137,8 @@ function WalletCard({
             <p className="mt-1 font-mono text-slate-100">{data.txCount}</p>
           </div>
           <div>
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Net ETH flow</p>
-            <p className="mt-1 font-mono text-slate-100">{formatEth(data.netEthFlow)}</p>
+            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Net {data.currencySymbol} flow</p>
+            <p className="mt-1 font-mono text-slate-100">{formatNative(data.netEthFlow, data.currencySymbol)}</p>
           </div>
           <div className="col-span-2">
             <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Last transaction</p>
@@ -138,12 +149,12 @@ function WalletCard({
 
       <a
         className="button button--secondary mt-4"
-        href={`https://etherscan.io/address/${wallet.address}`}
+        href={getAddressExplorerUrl(chain, wallet.address)}
         rel="noreferrer"
         target="_blank"
       >
         <ExternalLink size={14} aria-hidden="true" />
-        Open Etherscan
+        Open {chainConfig.explorerName}
       </a>
     </article>
   );
@@ -151,6 +162,7 @@ function WalletCard({
 
 export function TrackedWalletsPanel({
   addWallet,
+  chain,
   onWalletData,
   removeWallet,
   wallets,
@@ -166,7 +178,7 @@ export function TrackedWalletsPanel({
     const cleanLabel = label.trim();
 
     if (!/^0x[a-fA-F0-9]{40}$/.test(cleanAddress)) {
-      setFormError("Enter a valid Ethereum address.");
+      setFormError("Enter a valid EVM wallet address.");
       return;
     }
 
@@ -234,6 +246,7 @@ export function TrackedWalletsPanel({
           {wallets.map((wallet) => (
             <WalletCard
               key={wallet.address}
+              chain={chain}
               onData={onWalletData}
               onRemove={removeWallet}
               wallet={wallet}

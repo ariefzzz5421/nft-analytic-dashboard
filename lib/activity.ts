@@ -1,4 +1,5 @@
 import type { ActivityEventType, NormalizedActivityEvent } from "@/lib/types";
+import { getTransactionExplorerUrl, type SupportedChain } from "@/lib/chains";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -180,7 +181,10 @@ function readAddress(event: unknown, paths: Array<Array<string | number>>) {
   return value?.startsWith("0x") ? value : value ?? undefined;
 }
 
-export function normalizeActivityEvent(event: unknown): NormalizedActivityEvent {
+export function normalizeActivityEvent(
+  event: unknown,
+  chain: SupportedChain = "ethereum",
+): NormalizedActivityEvent {
   let eventType = normalizeEventType(
     firstString(event, [["event_type"], ["eventType"], ["type"]]),
   );
@@ -284,7 +288,7 @@ export function normalizeActivityEvent(event: unknown): NormalizedActivityEvent 
 
   return {
     buyer,
-    etherscanUrl: txHash ? `https://etherscan.io/tx/${txHash}` : undefined,
+    etherscanUrl: txHash ? getTransactionExplorerUrl(chain, txHash) : undefined,
     eventType,
     from,
     id,
@@ -303,8 +307,11 @@ export function normalizeActivityEvent(event: unknown): NormalizedActivityEvent 
   };
 }
 
-export function normalizeActivityEvents(events: unknown[]) {
-  return events.map((event) => normalizeActivityEvent(event));
+export function normalizeActivityEvents(
+  events: unknown[],
+  chain: SupportedChain = "ethereum",
+) {
+  return events.map((event) => normalizeActivityEvent(event, chain));
 }
 
 export function buildActivityWarnings(events: NormalizedActivityEvent[]) {

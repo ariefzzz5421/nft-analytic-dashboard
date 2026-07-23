@@ -48,7 +48,7 @@ async function fetchOpenSea<T>(path: string): Promise<T> {
     }
 
     if (response.status === 404) {
-      throw new OpenSeaApiError("Collection slug was not found on OpenSea.", 404);
+      throw new OpenSeaApiError("OpenSea resource was not found.", 404);
     }
 
     if (response.status === 401 || response.status === 403) {
@@ -81,6 +81,12 @@ function readNextCursor(payload: unknown) {
 
 export function fetchCollection(slug: string) {
   return fetchOpenSea<unknown>(`/collections/${encodeURIComponent(slug)}`);
+}
+
+export function fetchContract(chain: string, address: string) {
+  return fetchOpenSea<unknown>(
+    `/chain/${encodeURIComponent(chain)}/contract/${encodeURIComponent(address)}`,
+  );
 }
 
 export function fetchCollectionStats(slug: string) {
@@ -144,4 +150,9 @@ export async function fetchCollectionEvents(slug: string, params: URLSearchParam
 export function getEthUsdFallback() {
   const value = Number(process.env.ETH_USD_FALLBACK ?? "1730");
   return Number.isFinite(value) && value > 0 ? value : 1730;
+}
+
+export function getApeUsdFallback() {
+  const value = Number(process.env.APE_USD_FALLBACK ?? "0");
+  return Number.isFinite(value) && value > 0 ? value : 0;
 }

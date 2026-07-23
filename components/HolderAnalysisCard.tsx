@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ExternalLink, Network } from "lucide-react";
 import { EthUsdValue } from "@/components/EthUsdValue";
 import { formatAddress, formatNumber, formatPercent } from "@/lib/format";
+import { getAddressExplorerUrl, getChainConfig } from "@/lib/chains";
 import type { NormalizedListing, SweepApiResponse } from "@/lib/types";
 
 type HolderAnalysisCardProps = {
@@ -44,6 +45,7 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
   const [page, setPage] = useState(1);
   const topHolders = useMemo(() => buildTopHolders(data.listings), [data.listings]);
   const { collection } = data;
+  const chainConfig = getChainConfig(data.chain);
   const ownerSpread =
     collection.owners !== null && collection.supply !== null && collection.supply > 0
       ? (collection.owners / collection.supply) * 100
@@ -129,12 +131,12 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
                     <div className="flex min-w-0 items-center gap-2">
                       <p className="min-w-0 flex-1 truncate font-mono text-white">{formatAddress(holder.id)}</p>
                       <a
-                        aria-label={`Open ${holder.label} on Etherscan`}
+                        aria-label={`Open ${holder.label} on ${chainConfig.explorerName}`}
                         className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-700 text-slate-400 transition hover:border-cyan-400/60 hover:text-cyan-100"
-                        href={`https://etherscan.io/address/${holder.id}`}
+                        href={getAddressExplorerUrl(data.chain, holder.id)}
                         rel="noreferrer"
                         target="_blank"
-                        title="Open on Etherscan"
+                        title={`Open on ${chainConfig.explorerName}`}
                       >
                         <ExternalLink size={14} aria-hidden="true" />
                       </a>
@@ -146,7 +148,12 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
                     <p className="mt-1 text-xs text-slate-500">{formatPercent(listedShare)} of listed NFTs</p>
                   </div>
                   <span className="font-mono text-cyan-100">
-                    <EthUsdValue ethUsd={ethUsd} label="Holder listed value" value={sumEth(holder.listings)} />
+                    <EthUsdValue
+                      ethUsd={ethUsd}
+                      label="Holder listed value"
+                      symbol={data.nativeCurrency.symbol}
+                      value={sumEth(holder.listings)}
+                    />
                   </span>
                   <span className="font-mono text-slate-300">{formatPercent(supplyShare)}</span>
                 </div>

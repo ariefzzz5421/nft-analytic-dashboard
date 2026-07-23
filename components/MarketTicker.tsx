@@ -90,7 +90,7 @@ export function MarketTicker() {
   const assets = prices?.assets ?? [];
   const tickerLabel = assets.length
     ? assets.map((asset) => asset.symbol).join("/")
-    : "BTC/ETH/HYPE/BNB/SOL";
+    : "BTC/ETH/APE/HYPE/BNB/SOL";
 
   return (
     <div className="market-strip">
@@ -108,7 +108,7 @@ export function MarketTicker() {
               assets.map((asset) => <PricePill asset={asset} key={asset.symbol} />)
             ) : (
               <div className="market-strip__loading">
-                Loading BTC/ETH/HYPE/BNB/SOL prices...
+                Loading BTC/ETH/APE/HYPE/BNB/SOL prices...
               </div>
             )}
           </div>

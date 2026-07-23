@@ -1,12 +1,16 @@
 import type { ReactNode } from "react";
 import { EthUsdValue } from "@/components/EthUsdValue";
+import { NetworkBadge } from "@/components/NetworkBadge";
+import type { SupportedChain } from "@/lib/chains";
 import { formatNumber, formatPercent } from "@/lib/format";
 import type { CollectionSummaryData } from "@/lib/types";
 
 type CollectionSummaryProps = {
+  chain: SupportedChain;
   collection: CollectionSummaryData;
   ethUsd?: number | null;
   slug: string;
+  symbol: string;
 };
 
 type Metric =
@@ -30,7 +34,13 @@ function MetricCard({ children, label }: { children: ReactNode; label: string })
   );
 }
 
-export function CollectionSummary({ collection, ethUsd, slug }: CollectionSummaryProps) {
+export function CollectionSummary({
+  chain,
+  collection,
+  ethUsd,
+  slug,
+  symbol,
+}: CollectionSummaryProps) {
   const metrics: Metric[] = [
     { label: "Total supply", value: formatNumber(collection.supply, 0) },
     { ethValue: collection.floor, label: "Current floor" },
@@ -64,7 +74,10 @@ export function CollectionSummary({ collection, ethUsd, slug }: CollectionSummar
       <div className="collection-overview__data">
         <header className="collection-overview__identity">
           <p>Collection</p>
-          <h2>{collection.name}</h2>
+          <div className="collection-overview__titleline">
+            <h2>{collection.name}</h2>
+            <NetworkBadge chain={chain} />
+          </div>
           <span>{slug}</span>
         </header>
 
@@ -72,7 +85,12 @@ export function CollectionSummary({ collection, ethUsd, slug }: CollectionSummar
           {metrics.map((metric) => (
             <MetricCard key={metric.label} label={metric.label}>
               {"ethValue" in metric ? (
-                <EthUsdValue ethUsd={ethUsd} label={metric.label} value={metric.ethValue} />
+                <EthUsdValue
+                  ethUsd={ethUsd}
+                  label={metric.label}
+                  symbol={symbol}
+                  value={metric.ethValue}
+                />
               ) : (
                 metric.value
               )}

@@ -1,4 +1,5 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { parseSupportedChain } from "@/lib/chains";
 import { EtherscanApiError, fetchWalletAnalytics } from "@/lib/server/etherscan";
 
 type RouteContext = {
@@ -15,11 +16,12 @@ function jsonError(error: string, status: number) {
   );
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   const { address } = await context.params;
+  const chain = parseSupportedChain(request.nextUrl.searchParams.get("chain"));
 
   try {
-    const response = await fetchWalletAnalytics(address);
+    const response = await fetchWalletAnalytics(address, chain);
 
     return NextResponse.json(response, {
       headers: {

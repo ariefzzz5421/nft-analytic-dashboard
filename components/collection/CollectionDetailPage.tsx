@@ -13,12 +13,17 @@ import { ErrorState } from "@/components/ErrorState";
 import { HolderAnalysisCard } from "@/components/HolderAnalysisCard";
 import { ListingDistributionChart } from "@/components/ListingDistributionChart";
 import { LoadingState } from "@/components/LoadingState";
+import { NetworkBadge } from "@/components/NetworkBadge";
 import { RefreshRateControl } from "@/components/RefreshRateControl";
 import { SweepCostChart } from "@/components/SweepCostChart";
 import { SweepLadderTable } from "@/components/SweepLadderTable";
-import { useLiveEthPrice } from "@/components/useLiveEthPrice";
+import { useLiveAssetPrice, useLiveEthPrice } from "@/components/useLiveEthPrice";
 import { TrackedWalletsPanel } from "@/components/wallets/TrackedWalletsPanel";
 import { formatDateTime, formatUsd } from "@/lib/format";
+import {
+  getWatchlistKey,
+  type SupportedChain,
+} from "@/lib/chains";
 import {
   calculateSweepLadder,
   DEFAULT_TARGET_FLOORS,
@@ -29,13 +34,15 @@ import type { ApiErrorResponse, SweepApiResponse, WalletApiResponse } from "@/li
 import { getDefaultWatchlistItem, useWatchlist } from "@/lib/watchlist";
 
 type CollectionDetailPageProps = {
+  chain: SupportedChain;
   slug: string;
 };
 
 type TargetMode = "custom" | "range";
 
-async function fetchSweep(slug: string) {
-  const response = await fetch(`/api/sweep/${encodeURIComponent(slug)}`);
+async function fetchSweep(slug: string, chain: SupportedChain) {
+  const params = new URLSearchParams({ chain });
+  const response = await fetch(`/api/sweep/${encodeURIComponent(slug)}?${params.toString()}`);
   const payload = (await response.json()) as SweepApiResponse | ApiErrorResponse;
 
   if (!response.ok) {
@@ -83,17 +90,17 @@ function buildRangeTargets(start: number, end: number, step: number) {
 
 const quickTargets = [0.1, 0.5, 1];
 
-export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
+export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps) {
   const {
     addWallet,
-    bySlug,
+    byKey,
     hydrated,
     removeItem,
     removeWallet,
     updateTargetFloors,
     upsertItem,
   } = useWatchlist();
-  const watchlistItem = bySlug.get(slug);
+  const watchlistItem = byKey.get(getWatchlistKey(slug, chain));
   const [data, setData] = useState<SweepApiResponse | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -108,10 +115,15 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
   const [localTargets, setLocalTargets] = useState<number[]>([]);
   const [walletData, setWalletData] = useState<Record<string, WalletApiResponse | null>>({});
   const [refreshSeconds, setRefreshSeconds] = useState(60);
-  const liveEthPrice = useLiveEthPrice(data?.ethUsd);
-  const activeEthUsd = liveEthPrice.priceUsd ?? data?.ethUsd ?? null;
+  const liveNativePrice = useLiveAssetPrice(
+    data?.nativeCurrency.symbol ?? (chain === "ape_chain" ? "APE" : "ETH"),
+    data?.nativeUsd,
+  );
+  const liveEthPrice = useLiveEthPrice();
+  const activeNativeUsd = liveNativePrice.priceUsd ?? data?.nativeUsd ?? null;
+  const nativeSymbol = data?.nativeCurrency.symbol ?? (chain === "ape_chain" ? "APE" : "ETH");
 
-  const activeItem = watchlistItem ?? getDefaultWatchlistItem(slug);
+  const activeItem = watchlistItem ?? getDefaultWatchlistItem(slug, chain);
   const currentFloor = data?.collection.floor ?? null;
   const smartTargets = useMemo(
     () => generateSmartTargets(currentFloor ?? 0),
@@ -143,7 +155,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
     setError("");
 
     try {
-      const response = await fetchSweep(slug);
+      const response = await fetchSweep(slug, chain);
       setData(response);
 
       if (
@@ -162,7 +174,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
     } finally {
       setLoading(false);
     }
-  }, [setData, setError, setLoading, slug, upsertItem, watchlistItem]);
+  }, [chain, setData, setError, setLoading, slug, upsertItem, watchlistItem]);
 
   useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -189,16 +201,16 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
       return [];
     }
 
-    return calculateSweepLadder(data.listings, filteredTargets, activeEthUsd ?? data.ethUsd, currentFloor);
-  }, [activeEthUsd, currentFloor, data, filteredTargets]);
+    return calculateSweepLadder(data.listings, filteredTargets, activeNativeUsd ?? data.nativeUsd, currentFloor);
+  }, [activeNativeUsd, currentFloor, data, filteredTargets]);
 
   const smartLadder = useMemo(() => {
     if (!data) {
       return [];
     }
 
-    return calculateSweepLadder(data.listings, smartTargets, activeEthUsd ?? data.ethUsd, currentFloor);
-  }, [activeEthUsd, currentFloor, data, smartTargets]);
+    return calculateSweepLadder(data.listings, smartTargets, activeNativeUsd ?? data.nativeUsd, currentFloor);
+  }, [activeNativeUsd, currentFloor, data, smartTargets]);
 
   const nextMeaningfulTarget = smartLadder[0] ?? null;
 
@@ -238,7 +250,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
     }
 
     if (watchlistItem) {
-      updateTargetFloors(slug, nextTargets);
+      updateTargetFloors(slug, nextTargets, chain);
     } else {
       setLocalTargets(nextTargets);
     }
@@ -284,7 +296,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
     setTargetError("");
 
     if (watchlistItem) {
-      updateTargetFloors(slug, DEFAULT_TARGET_FLOORS);
+      updateTargetFloors(slug, DEFAULT_TARGET_FLOORS, chain);
     } else {
       setLocalTargets([]);
     }
@@ -294,7 +306,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
     const nextTargets = activeTargets.filter((candidate) => candidate !== target);
 
     if (watchlistItem) {
-      updateTargetFloors(slug, nextTargets.length ? nextTargets : smartTargets);
+      updateTargetFloors(slug, nextTargets.length ? nextTargets : smartTargets, chain);
     } else {
       setLocalTargets(nextTargets);
     }
@@ -302,11 +314,12 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
 
   function toggleWatchlist() {
     if (watchlistItem) {
-      removeItem(slug);
+      removeItem(slug, chain);
       return;
     }
 
     upsertItem({
+      chain,
       imageUrl: data?.collection.imageUrl,
       name: data?.collection.name,
       slug,
@@ -321,9 +334,10 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
           <div className="collection-toolbar__topline">
             <div className="collection-toolbar__identity">
               <p><Link href="/">Dashboard</Link> / Collection</p>
-              <h1>
-                  {data?.collection.name ?? activeItem.name ?? slug}
-                </h1>
+              <div className="collection-toolbar__titleline">
+                <h1>{data?.collection.name ?? activeItem.name ?? slug}</h1>
+                <NetworkBadge chain={chain} />
+              </div>
               <span>{slug}</span>
             </div>
 
@@ -363,7 +377,12 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
             {treasuryBalanceEth !== null ? (
               <span>
                 Tracked balance:{" "}
-                <EthUsdValue ethUsd={activeEthUsd} label="Tracked balance" value={treasuryBalanceEth} />
+                <EthUsdValue
+                  ethUsd={activeNativeUsd}
+                  label="Tracked balance"
+                  symbol={nativeSymbol}
+                  value={treasuryBalanceEth}
+                />
               </span>
             ) : null}
           </div>
@@ -374,7 +393,13 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
 
         {data && !loading ? (
           <>
-            <CollectionSummary collection={data.collection} ethUsd={activeEthUsd} slug={data.slug} />
+            <CollectionSummary
+              chain={data.chain}
+              collection={data.collection}
+              ethUsd={activeNativeUsd}
+              slug={data.slug}
+              symbol={nativeSymbol}
+            />
 
             <section className="sweep-workspace">
               <div className="sweep-workspace__primary">
@@ -484,7 +509,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                             onClick={() => saveTargets([...activeTargets, target])}
                             type="button"
                           >
-                            {target} ETH
+                            {target} {nativeSymbol}
                           </button>
                         ))}
                       </div>
@@ -496,16 +521,18 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                         <div className="mt-2 grid gap-1 text-sm">
                           <p className="font-mono text-lg font-semibold text-white">
                             <EthUsdValue
-                              ethUsd={activeEthUsd}
+                              ethUsd={activeNativeUsd}
                               label="Next target floor"
                               showInlineUsd
+                              symbol={nativeSymbol}
                               value={nextMeaningfulTarget.targetFloor}
                             />
                           </p>
                           <p className="font-mono text-cyan-100">
                             <EthUsdValue
-                              ethUsd={activeEthUsd}
+                              ethUsd={activeNativeUsd}
                               label="Next target cost"
+                              symbol={nativeSymbol}
                               value={nextMeaningfulTarget.costEth}
                             />
                           </p>
@@ -527,7 +554,7 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                           onClick={() => removeTarget(target)}
                           type="button"
                         >
-                          <EthUsdValue ethUsd={activeEthUsd} label="Target floor" showInlineUsd value={target} />
+                          <EthUsdValue ethUsd={activeNativeUsd} label="Target floor" showInlineUsd symbol={nativeSymbol} value={target} />
                         </button>
                       ))
                     ) : (
@@ -574,9 +601,10 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                     Tracked wallet balance can cover{" "}
                     {Math.round(primaryCoverage.coverage * 100)}% of cost to{" "}
                     <EthUsdValue
-                      ethUsd={activeEthUsd}
+                      ethUsd={activeNativeUsd}
                       label="Coverage target floor"
                       showInlineUsd
+                      symbol={nativeSymbol}
                       value={primaryCoverage.targetFloor}
                     />
                     .
@@ -584,8 +612,9 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                 ) : null}
                 {ladder.length > 0 ? (
                   <SweepLadderTable
-                    ethUsd={activeEthUsd}
+                    ethUsd={activeNativeUsd}
                     ladder={ladder}
+                    symbol={nativeSymbol}
                     treasuryBalanceEth={treasuryBalanceEth}
                   />
                 ) : (
@@ -595,39 +624,41 @@ export function CollectionDetailPage({ slug }: CollectionDetailPageProps) {
                 )}
               </div>
 
-              <BidSupportCard collection={data.collection} ethUsd={activeEthUsd} risk={data.risk} />
+              <BidSupportCard collection={data.collection} ethUsd={activeNativeUsd} risk={data.risk} symbol={nativeSymbol} />
             </section>
 
-            <CreatorActivityCard data={data} ethUsd={activeEthUsd} />
-            <HolderAnalysisCard data={data} ethUsd={activeEthUsd} />
+            <CreatorActivityCard data={data} ethUsd={activeNativeUsd} />
+            <HolderAnalysisCard data={data} ethUsd={activeNativeUsd} />
 
             <section className="chart-pair">
-              <SweepCostChart data={ladder} />
-              <ListingDistributionChart data={data.listingDistribution} />
+              <SweepCostChart data={ladder} symbol={nativeSymbol} />
+              <ListingDistributionChart data={data.listingDistribution} symbol={nativeSymbol} />
             </section>
 
-            <ActivityTable slug={slug} />
+            <ActivityTable chain={chain} slug={slug} />
 
             <TrackedWalletsPanel
               addWallet={(wallet) => {
                 if (!watchlistItem) {
                   upsertItem({
+                    chain,
                     imageUrl: data.collection.imageUrl,
                     name: data.collection.name,
                     slug,
                     targetFloors: activeTargets,
                   });
                 }
-                addWallet(slug, wallet);
+                addWallet(slug, wallet, chain);
               }}
-              ethUsd={activeEthUsd ?? data.ethUsd}
+              chain={chain}
+              ethUsd={activeNativeUsd ?? data.nativeUsd}
               onWalletData={handleWalletData}
-              removeWallet={(address) => removeWallet(slug, address)}
+              removeWallet={(address) => removeWallet(slug, address, chain)}
               wallets={activeItem.devWallets}
             />
 
             <EthUsdConverter
-              ethUsd={liveEthPrice.priceUsd ?? data.ethUsd}
+              ethUsd={liveEthPrice.priceUsd}
               lastUpdated={liveEthPrice.lastUpdated ?? data.lastUpdated}
               source={liveEthPrice.source}
             />

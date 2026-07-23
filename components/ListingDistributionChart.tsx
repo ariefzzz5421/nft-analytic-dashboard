@@ -9,14 +9,15 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatEth } from "@/lib/format";
+import { formatNative } from "@/lib/format";
 import type { ListingDistributionBucket } from "@/lib/types";
 
 type ListingDistributionChartProps = {
   data: ListingDistributionBucket[];
+  symbol?: string;
 };
 
-export function ListingDistributionChart({ data }: ListingDistributionChartProps) {
+export function ListingDistributionChart({ data, symbol = "ETH" }: ListingDistributionChartProps) {
   return (
     <section className="chart-panel">
       <div className="mb-4">
@@ -49,7 +50,7 @@ export function ListingDistributionChart({ data }: ListingDistributionChartProps
                   <div className="rounded-md border border-emerald-400/30 bg-slate-950 px-3 py-2 text-sm shadow-xl">
                     <p className="font-semibold text-emerald-100">{label}</p>
                     <p className="text-slate-300">{row.count} listings</p>
-                    <p className="text-slate-300">{formatEth(row.totalEth)} total</p>
+                    <p className="text-slate-300">{formatNative(row.totalEth, symbol)} total</p>
                   </div>
                 );
               }}

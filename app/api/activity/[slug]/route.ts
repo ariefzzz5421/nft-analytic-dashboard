@@ -3,6 +3,7 @@ import { buildActivityWarnings, normalizeActivityEvents } from "@/lib/activity";
 import { fetchCollectionEvents, OpenSeaApiError } from "@/lib/opensea";
 import { extractSlug } from "@/lib/slug";
 import type { ActivityApiResponse, ActivityEventType, NormalizedActivityEvent } from "@/lib/types";
+import { parseSupportedChain } from "@/lib/chains";
 
 type RouteContext = {
   params: Promise<{ slug: string }>;
@@ -69,6 +70,7 @@ function jsonError(error: string, status: number) {
 export async function GET(request: NextRequest, context: RouteContext) {
   const { slug: routeSlug } = await context.params;
   const slug = extractSlug(routeSlug);
+  const chain = parseSupportedChain(request.nextUrl.searchParams.get("chain"));
 
   if (!slug) {
     return jsonError("Collection slug is invalid.", 400);
@@ -91,10 +93,11 @@ export async function GET(request: NextRequest, context: RouteContext) {
   try {
     const payload = await fetchCollectionEvents(slug, params);
     const events = applyFallbackEventType(
-      normalizeActivityEvents(readEvents(payload)),
+      normalizeActivityEvents(readEvents(payload), chain),
       fallbackEventType(searchParams.get("event_type")),
     );
     const response: ActivityApiResponse = {
+      chain,
       events,
       next: readNext(payload),
       slug,

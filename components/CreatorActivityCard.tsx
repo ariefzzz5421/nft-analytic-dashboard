@@ -3,7 +3,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { ExternalLink, RefreshCw, UserRound } from "lucide-react";
 import { EthUsdValue } from "@/components/EthUsdValue";
-import { formatAddress, formatDateTime, formatEth } from "@/lib/format";
+import { formatAddress, formatDateTime, formatNative } from "@/lib/format";
+import {
+  getAddressExplorerUrl,
+  getChainConfig,
+  getTransactionExplorerUrl,
+  type SupportedChain,
+} from "@/lib/chains";
 import type {
   ActivityApiResponse,
   ActivityEventType,
@@ -29,10 +35,11 @@ const eventLabels: Record<ActivityEventType, string> = {
   unknown: "Unknown",
 };
 
-async function fetchActivity(slug: string) {
+async function fetchActivity(slug: string, chain: SupportedChain) {
   const params = new URLSearchParams({
     event_type: "sale,transfer,mint,listing,offer",
     limit: "20",
+    chain,
   });
   const response = await fetch(`/api/activity/${encodeURIComponent(slug)}?${params.toString()}`);
   const payload = (await response.json()) as ActivityApiResponse | ApiErrorResponse;
@@ -44,8 +51,9 @@ async function fetchActivity(slug: string) {
   return payload as ActivityApiResponse;
 }
 
-async function fetchCreatorWallet(address: string) {
-  const response = await fetch(`/api/wallet/${encodeURIComponent(address)}`);
+async function fetchCreatorWallet(address: string, chain: SupportedChain) {
+  const params = new URLSearchParams({ chain });
+  const response = await fetch(`/api/wallet/${encodeURIComponent(address)}?${params.toString()}`);
   const payload = (await response.json()) as WalletApiResponse | ApiErrorResponse;
 
   if (!response.ok) {
@@ -77,7 +85,15 @@ function tokenLabel(event: NormalizedActivityEvent) {
   return event.tokenId ? `#${event.tokenId}` : "Collection";
 }
 
-function AddressLink({ address, label }: { address: string | null | undefined; label: string }) {
+function AddressLink({
+  address,
+  chain,
+  label,
+}: {
+  address: string | null | undefined;
+  chain: SupportedChain;
+  label: string;
+}) {
   if (!address) {
     return <span className="font-mono text-slate-500">Unknown</span>;
   }
@@ -85,7 +101,7 @@ function AddressLink({ address, label }: { address: string | null | undefined; l
   return (
     <a
       className="inline-flex min-w-0 items-center gap-2 font-mono text-cyan-100 transition hover:text-cyan-50"
-      href={`https://etherscan.io/address/${address}`}
+      href={getAddressExplorerUrl(chain, address)}
       rel="noreferrer"
       target="_blank"
     >
@@ -104,6 +120,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
   const [loading, setLoading] = useState(true);
   const [walletLoading, setWalletLoading] = useState(false);
   const creatorAddress = data.collection.creator.address;
+  const chainConfig = getChainConfig(data.chain);
   const latestEvent = events[0] ?? null;
   const creatorEvents = useMemo(
     () => (creatorAddress ? events.filter((event) => eventAddressMatches(event, creatorAddress)) : []),
@@ -122,7 +139,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
       setWallet(null);
 
       try {
-        const response = await fetchActivity(data.slug);
+        const response = await fetchActivity(data.slug, data.chain);
 
         if (!cancelled) {
           setEvents(response.events);
@@ -145,7 +162,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
       }
 
       try {
-        const response = await fetchCreatorWallet(creatorAddress);
+        const response = await fetchCreatorWallet(creatorAddress, data.chain);
 
         if (!cancelled) {
           setWallet(response);
@@ -166,7 +183,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
     return () => {
       cancelled = true;
     };
-  }, [creatorAddress, data.slug]);
+  }, [creatorAddress, data.chain, data.slug]);
 
   return (
     <section className="creator-ledger">
@@ -191,12 +208,12 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
             setWalletLoading(Boolean(creatorAddress));
             setError("");
             setWalletError("");
-            void fetchActivity(data.slug)
+            void fetchActivity(data.slug, data.chain)
               .then((response) => setEvents(response.events))
               .catch((cause) => setError(cause instanceof Error ? cause.message : "Activity unavailable."))
               .finally(() => setLoading(false));
             if (creatorAddress) {
-              void fetchCreatorWallet(creatorAddress)
+              void fetchCreatorWallet(creatorAddress, data.chain)
                 .then((response) => setWallet(response))
                 .catch((cause) =>
                   setWalletError(
@@ -217,13 +234,13 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
         <div className="creator-ledger__fact">
           <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Creator address</p>
           <p className="mt-2 min-w-0">
-            <AddressLink address={creatorAddress} label="Open creator on Etherscan" />
+            <AddressLink address={creatorAddress} chain={data.chain} label={`Open creator on ${chainConfig.explorerName}`} />
           </p>
         </div>
         <div className="creator-ledger__fact">
           <p className="text-xs uppercase tracking-[0.16em] text-slate-500">Contract address</p>
           <p className="mt-2 min-w-0">
-            <AddressLink address={data.collection.creator.contractAddress} label="Open contract on Etherscan" />
+            <AddressLink address={data.collection.creator.contractAddress} chain={data.chain} label={`Open contract on ${chainConfig.explorerName}`} />
           </p>
         </div>
         <div className="creator-ledger__fact">
@@ -264,12 +281,12 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
               Creator wallet transactions
             </p>
             <p className="mt-1 text-sm text-slate-400">
-              Showing up to 10 latest Etherscan transactions from the creator address.
+              Showing up to 10 latest {chainConfig.explorerName} transactions from the creator address.
             </p>
           </div>
           {wallet ? (
             <p className="font-mono text-xs text-slate-500">
-              Balance {formatEth(wallet.balanceEth)}
+              Balance {formatNative(wallet.balanceEth, wallet.currencySymbol)}
             </p>
           ) : null}
         </div>
@@ -311,7 +328,9 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
                       {formatDateTime(transaction.timestamp)}
                     </td>
                     <td className="px-3 py-3 capitalize">{transaction.direction}</td>
-                    <td className="px-3 py-3 font-mono">{formatEth(transaction.valueEth)}</td>
+                    <td className="px-3 py-3 font-mono">
+                      {formatNative(transaction.valueEth, wallet.currencySymbol)}
+                    </td>
                     <td className="px-3 py-3 font-mono text-xs text-slate-400">
                       {formatAddress(transaction.from)}
                     </td>
@@ -321,7 +340,7 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
                     <td className="px-3 py-3">
                       <a
                         className="button button--table"
-                        href={`https://etherscan.io/tx/${transaction.hash}`}
+                        href={getTransactionExplorerUrl(data.chain, transaction.hash)}
                         rel="noreferrer"
                         target="_blank"
                       >
@@ -369,7 +388,12 @@ export function CreatorActivityCard({ data, ethUsd }: CreatorActivityCardProps) 
                   <p className="font-semibold text-white">{eventLabels[latestEvent.eventType]}</p>
                   {latestEvent.priceEth ? (
                     <span className="font-mono text-cyan-100">
-                      <EthUsdValue ethUsd={ethUsd} label="Latest activity price" value={latestEvent.priceEth} />
+                      <EthUsdValue
+                        ethUsd={ethUsd}
+                        label="Latest activity price"
+                        symbol={data.nativeCurrency.symbol}
+                        value={latestEvent.priceEth}
+                      />
                     </span>
                   ) : null}
                 </div>

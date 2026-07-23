@@ -1,9 +1,9 @@
 import { getEthUsdFallback } from "@/lib/opensea";
 import type { WalletApiResponse, WalletTransaction } from "@/lib/types";
+import { getChainConfig, type SupportedChain } from "@/lib/chains";
+import { fetchMarketPrices } from "@/lib/server/market";
 
 const ETHERSCAN_BASE_URL = "https://api.etherscan.io/v2/api";
-const ETHEREUM_CHAIN_ID = "1";
-
 export class EtherscanApiError extends Error {
   status: number;
 
@@ -38,10 +38,10 @@ function weiToEth(value: string) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
-async function callEtherscan(params: Record<string, string>) {
+async function callEtherscan(chain: SupportedChain, params: Record<string, string>) {
   const searchParams = new URLSearchParams({
     apikey: getApiKey(),
-    chainid: ETHEREUM_CHAIN_ID,
+    chainid: String(getChainConfig(chain).chainId),
     module: "account",
     ...params,
   });
@@ -101,18 +101,21 @@ function normalizeTransaction(tx: EtherscanTx, address: string): WalletTransacti
   };
 }
 
-export async function fetchWalletAnalytics(address: string): Promise<WalletApiResponse> {
+export async function fetchWalletAnalytics(
+  address: string,
+  chain: SupportedChain = "ethereum",
+): Promise<WalletApiResponse> {
   if (!/^0x[a-fA-F0-9]{40}$/.test(address)) {
-    throw new EtherscanApiError("Invalid Ethereum address.", 400);
+    throw new EtherscanApiError("Invalid EVM address.", 400);
   }
 
-  const [balancePayload, txPayload] = await Promise.all([
-    callEtherscan({
+  const [balancePayload, txPayload, marketPrices] = await Promise.all([
+    callEtherscan(chain, {
       action: "balance",
       address,
       tag: "latest",
     }),
-    callEtherscan({
+    callEtherscan(chain, {
       action: "txlist",
       address,
       endblock: "999999999",
@@ -121,6 +124,7 @@ export async function fetchWalletAnalytics(address: string): Promise<WalletApiRe
       sort: "desc",
       startblock: "0",
     }),
+    fetchMarketPrices(),
   ]);
   const balanceEth = weiToEth(typeof balancePayload.result === "string" ? balancePayload.result : "0");
   const rawTransactions = Array.isArray(txPayload.result) ? (txPayload.result as EtherscanTx[]) : [];
@@ -136,12 +140,18 @@ export async function fetchWalletAnalytics(address: string): Promise<WalletApiRe
 
     return total;
   }, 0);
-  const ethUsd = getEthUsdFallback();
+  const config = getChainConfig(chain);
+  const nativePrice =
+    marketPrices.assets.find(
+      (asset) => asset.symbol === config.nativeSymbol && asset.priceUsd > 0,
+    )?.priceUsd ?? (chain === "ethereum" ? getEthUsdFallback() : 0);
 
   return {
     address,
+    chain,
+    currencySymbol: config.nativeSymbol,
     balanceEth,
-    balanceUsd: Number((balanceEth * ethUsd).toFixed(2)),
+    balanceUsd: Number((balanceEth * nativePrice).toFixed(2)),
     lastTxAt: recentTransactions[0]?.timestamp ?? null,
     netEthFlow: Number(netEthFlow.toFixed(8)),
     recentTransactions,

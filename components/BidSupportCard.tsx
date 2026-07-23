@@ -7,9 +7,10 @@ type BidSupportCardProps = {
   collection: CollectionSummaryData;
   ethUsd?: number | null;
   risk: RiskSummary;
+  symbol?: string;
 };
 
-export function BidSupportCard({ collection, ethUsd, risk }: BidSupportCardProps) {
+export function BidSupportCard({ collection, ethUsd, risk, symbol = "ETH" }: BidSupportCardProps) {
   return (
     <aside className="intelligence-rail">
       <div className="mb-5 flex items-center gap-3">
@@ -26,13 +27,13 @@ export function BidSupportCard({ collection, ethUsd, risk }: BidSupportCardProps
         <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <dt className="text-sm text-slate-400">Top offer</dt>
           <dd className="font-mono text-sm text-white">
-            <EthUsdValue ethUsd={ethUsd} label="Top offer" value={collection.topOffer} />
+            <EthUsdValue ethUsd={ethUsd} label="Top offer" symbol={symbol} value={collection.topOffer} />
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <dt className="text-sm text-slate-400">Current floor</dt>
           <dd className="font-mono text-sm text-white">
-            <EthUsdValue ethUsd={ethUsd} label="Current floor" value={collection.floor} />
+            <EthUsdValue ethUsd={ethUsd} label="Current floor" symbol={symbol} value={collection.floor} />
           </dd>
         </div>
         <div className="flex items-center justify-between gap-3 border-b border-slate-800 pb-3">

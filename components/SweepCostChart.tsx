@@ -9,17 +9,18 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { formatEth, formatUsd } from "@/lib/format";
+import { formatNative, formatUsd } from "@/lib/format";
 import type { SweepLadderRow } from "@/lib/types";
 
 type SweepCostChartProps = {
   data: SweepLadderRow[];
+  symbol?: string;
 };
 
-export function SweepCostChart({ data }: SweepCostChartProps) {
+export function SweepCostChart({ data, symbol = "ETH" }: SweepCostChartProps) {
   const chartData = data.map((row) => ({
     ...row,
-    targetLabel: formatEth(row.targetFloor).replace(" ETH", ""),
+    targetLabel: formatNative(row.targetFloor, symbol).replace(` ${symbol}`, ""),
   }));
 
   return (
@@ -27,7 +28,7 @@ export function SweepCostChart({ data }: SweepCostChartProps) {
       <div className="mb-4">
         <h2 className="text-lg font-semibold text-white">Sweep Cost</h2>
         <p className="mt-1 text-sm text-slate-400">
-          Estimated ETH required below each target floor.
+          Estimated {symbol} required below each target floor.
         </p>
       </div>
       <div className="h-80">
@@ -56,8 +57,8 @@ export function SweepCostChart({ data }: SweepCostChartProps) {
 
                 return (
                   <div className="rounded-md border border-cyan-400/30 bg-slate-950 px-3 py-2 text-sm shadow-xl">
-                    <p className="font-semibold text-cyan-100">Target {label} ETH</p>
-                    <p className="text-slate-300">{formatEth(row.costEth)}</p>
+                    <p className="font-semibold text-cyan-100">Target {label} {symbol}</p>
+                    <p className="text-slate-300">{formatNative(row.costEth, symbol)}</p>
                     <p className="text-slate-300">{formatUsd(row.costUsd)}</p>
                   </div>
                 );

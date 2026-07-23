@@ -1,9 +1,11 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getChainConfig, parseSupportedChain, type SupportedChain } from "@/lib/chains";
 import {
   fetchAllCollectionOffers,
   fetchAllListings,
   fetchCollection,
   fetchCollectionStats,
+  getApeUsdFallback,
   getEthUsdFallback,
   OpenSeaApiError,
 } from "@/lib/opensea";
@@ -222,10 +224,18 @@ function findStatsFloor(statsPayload: unknown) {
   ]);
 }
 
-function readLiveEthUsd(prices: Awaited<ReturnType<typeof fetchMarketPrices>>) {
-  const eth = prices.assets.find((asset) => asset.symbol === "ETH" && asset.priceUsd > 0);
+function readLiveNativeUsd(
+  prices: Awaited<ReturnType<typeof fetchMarketPrices>>,
+  chain: SupportedChain,
+) {
+  const symbol = getChainConfig(chain).nativeSymbol;
+  const asset = prices.assets.find((candidate) => candidate.symbol === symbol && candidate.priceUsd > 0);
 
-  return eth?.priceUsd ?? getEthUsdFallback();
+  if (asset?.priceUsd) {
+    return asset.priceUsd;
+  }
+
+  return chain === "ape_chain" ? getApeUsdFallback() : getEthUsdFallback();
 }
 
 function buildSanityWarnings({
@@ -264,7 +274,7 @@ function buildSanityWarnings({
   }
 
   if (listingsCount === 0) {
-    warnings.push("No active ETH/WETH listings found.");
+    warnings.push("No active native-currency listings found.");
   }
 
   if (
@@ -310,9 +320,11 @@ function jsonError(error: string, status: number, details?: string) {
   );
 }
 
-export async function GET(_request: Request, context: RouteContext) {
+export async function GET(request: NextRequest, context: RouteContext) {
   const { slug: routeSlug } = await context.params;
   const slug = extractSlug(routeSlug);
+  const chain = parseSupportedChain(request.nextUrl.searchParams.get("chain"));
+  const chainConfig = getChainConfig(chain);
 
   if (!slug) {
     return jsonError("Collection slug is invalid.", 400);
@@ -334,9 +346,9 @@ export async function GET(_request: Request, context: RouteContext) {
       rawOffers = [];
     }
 
-    const listings = dedupeCheapestPerToken(normalizeListings(rawListings));
+    const listings = dedupeCheapestPerToken(normalizeListings(rawListings, chain));
     const normalizedOfferPrices = rawOffers
-      .map((offer) => normalizeOfferPrice(offer))
+      .map((offer) => normalizeOfferPrice(offer, chain))
       .filter((price): price is number => price !== null);
     const topOffer = normalizedOfferPrices.sort((left, right) => right - left)[0] ?? null;
     const floorFromListings = listings[0]?.priceEth ?? null;
@@ -352,20 +364,26 @@ export async function GET(_request: Request, context: RouteContext) {
       ...collection,
       floor: statsFloor ?? floorFromListings,
     };
-    const ethUsd = readLiveEthUsd(marketPrices);
+    const nativeUsd = readLiveNativeUsd(marketPrices, chain);
     const smartTargets = generateSmartTargets(collectionWithFloor.floor ?? 0);
     const sweepLadder = calculateSweepLadder(
       listings,
       smartTargets,
-      ethUsd,
+      nativeUsd,
       collectionWithFloor.floor,
     );
     const response: SweepApiResponse = {
+      chain,
       collection: collectionWithFloor,
-      ethUsd,
+      ethUsd: nativeUsd,
       lastUpdated: new Date().toISOString(),
       listingDistribution: calculateListingDistribution(listings),
       listings,
+      nativeCurrency: {
+        symbol: chainConfig.nativeSymbol,
+        wrappedSymbol: chainConfig.wrappedSymbol,
+      },
+      nativeUsd,
       refreshPolicy: OPENSEA_REFRESH_POLICY,
       risk: buildRiskSummary({
         floor: collectionWithFloor.floor,

@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { ExternalLink, RefreshCw } from "lucide-react";
-import { formatAddress, formatDateTime, formatEth } from "@/lib/format";
+import { formatAddress, formatDateTime, formatNative } from "@/lib/format";
+import { getAddressExplorerUrl, type SupportedChain } from "@/lib/chains";
 import type {
   ActivityApiResponse,
   ActivityEventType,
@@ -13,6 +14,7 @@ import type {
 type ActivityFilter = "all" | "sale" | "transfer" | "mint" | "listing" | "offer";
 
 type ActivityTableProps = {
+  chain: SupportedChain;
   onWarningsChange?: (warnings: string[]) => void;
   slug: string;
 };
@@ -47,7 +49,7 @@ function HashCell({ event }: { event: NormalizedActivityEvent }) {
   return <span className="font-mono text-xs text-cyan-200">{formatAddress(value)}</span>;
 }
 
-function AddressLink({ address }: { address?: string }) {
+function AddressLink({ address, chain }: { address?: string; chain: SupportedChain }) {
   if (!address) {
     return <span className="text-slate-600">-</span>;
   }
@@ -55,7 +57,7 @@ function AddressLink({ address }: { address?: string }) {
   return (
     <a
       className="font-mono text-xs text-slate-300 hover:text-cyan-100"
-      href={`https://etherscan.io/address/${address}`}
+      href={getAddressExplorerUrl(chain, address)}
       rel="noreferrer"
       target="_blank"
     >
@@ -78,14 +80,16 @@ function tokenLabel(event: NormalizedActivityEvent) {
 
 async function fetchActivity({
   cursor,
+  chain,
   filter,
   slug,
 }: {
   cursor?: string | null;
+  chain: SupportedChain;
   filter: ActivityFilter;
   slug: string;
 }) {
-  const params = new URLSearchParams({ limit: "50" });
+  const params = new URLSearchParams({ chain, limit: "50" });
   const config = filters.find((item) => item.value === filter);
 
   if (config?.eventType) {
@@ -106,7 +110,7 @@ async function fetchActivity({
   return payload as ActivityApiResponse;
 }
 
-export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
+export function ActivityTable({ chain, onWarningsChange, slug }: ActivityTableProps) {
   const [activeFilter, setActiveFilter] = useState<ActivityFilter>("all");
   const [events, setEvents] = useState<NormalizedActivityEvent[]>([]);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
@@ -127,6 +131,7 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
       try {
         const response = await fetchActivity({
           cursor,
+          chain,
           filter: activeFilter,
           slug,
         });
@@ -142,7 +147,7 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
         setLoadingMore(false);
       }
     },
-    [activeFilter, onWarningsChange, slug],
+    [activeFilter, chain, onWarningsChange, slug],
   );
 
   useEffect(() => {
@@ -247,13 +252,15 @@ export function ActivityTable({ onWarningsChange, slug }: ActivityTableProps) {
                     </div>
                   </td>
                   <td className="px-3 py-4 font-mono">
-                    {event.priceEth ? formatEth(event.priceEth) : event.paymentSymbol ?? "-"}
+                    {event.priceEth
+                      ? formatNative(event.priceEth, event.paymentSymbol ?? (chain === "ape_chain" ? "APE" : "ETH"))
+                      : event.paymentSymbol ?? "-"}
                   </td>
                   <td className="px-3 py-4">
-                    <AddressLink address={event.seller ?? event.from ?? event.maker} />
+                    <AddressLink address={event.seller ?? event.from ?? event.maker} chain={chain} />
                   </td>
                   <td className="px-3 py-4">
-                    <AddressLink address={event.buyer ?? event.to} />
+                    <AddressLink address={event.buyer ?? event.to} chain={chain} />
                   </td>
                   <td className="px-3 py-4">
                     <HashCell event={event} />

@@ -1,8 +1,7 @@
 import type { NormalizedListing, SupportedCurrency } from "@/lib/types";
+import { getChainConfig, type SupportedChain } from "@/lib/chains";
 
 type UnknownRecord = Record<string, unknown>;
-
-const supportedCurrencies = new Set<SupportedCurrency>(["ETH", "WETH"]);
 
 function isRecord(value: unknown): value is UnknownRecord {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
@@ -168,11 +167,20 @@ function readPriceParts(value: unknown) {
   return { currency, decimals, rawValue };
 }
 
-export function normalizeListing(listing: unknown): NormalizedListing | null {
+export function normalizeListing(
+  listing: unknown,
+  chain: SupportedChain = "ethereum",
+): NormalizedListing | null {
   const tokenId = findTokenId(listing);
   const orderHash = findOrderHash(listing);
   const seller = findSeller(listing);
   const { currency, decimals, rawValue } = readPriceParts(listing);
+
+  const config = getChainConfig(chain);
+  const supportedCurrencies = new Set<SupportedCurrency>([
+    config.nativeSymbol,
+    config.wrappedSymbol,
+  ]);
 
   if (!tokenId || !rawValue || !currency || !supportedCurrencies.has(currency as SupportedCurrency)) {
     return null;
@@ -194,8 +202,14 @@ export function normalizeListing(listing: unknown): NormalizedListing | null {
   };
 }
 
-export function normalizeOfferPrice(offer: unknown) {
+export function normalizeOfferPrice(offer: unknown, chain: SupportedChain = "ethereum") {
   const { currency, decimals, rawValue } = readPriceParts(offer);
+
+  const config = getChainConfig(chain);
+  const supportedCurrencies = new Set<SupportedCurrency>([
+    config.nativeSymbol,
+    config.wrappedSymbol,
+  ]);
 
   if (!rawValue || !currency || !supportedCurrencies.has(currency as SupportedCurrency)) {
     return null;
@@ -205,8 +219,8 @@ export function normalizeOfferPrice(offer: unknown) {
   return priceEth !== null && priceEth > 0 ? priceEth : null;
 }
 
-export function normalizeListings(listings: unknown[]) {
+export function normalizeListings(listings: unknown[], chain: SupportedChain = "ethereum") {
   return listings
-    .map((listing) => normalizeListing(listing))
+    .map((listing) => normalizeListing(listing, chain))
     .filter((listing): listing is NormalizedListing => Boolean(listing));
 }

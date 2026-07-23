@@ -1,6 +1,6 @@
 "use client";
 
-import { formatEth, formatNumber, formatUsd } from "@/lib/format";
+import { formatNative, formatNumber, formatUsd } from "@/lib/format";
 
 type EthUsdValueProps = {
   className?: string;
@@ -8,6 +8,7 @@ type EthUsdValueProps = {
   fallback?: string;
   label?: string;
   showInlineUsd?: boolean;
+  symbol?: string;
   value: number | null | undefined;
 };
 
@@ -17,6 +18,7 @@ export function EthUsdValue({
   fallback = "Unknown",
   label = "ETH value",
   showInlineUsd = false,
+  symbol = "ETH",
   value,
 }: EthUsdValueProps) {
   const hasEth = typeof value === "number" && Number.isFinite(value);
@@ -24,8 +26,8 @@ export function EthUsdValue({
   const usdValue = hasEth && hasPrice ? value * ethUsd : null;
   const ariaLabel =
     hasEth && usdValue !== null
-      ? `${label}: ${formatEth(value)} equals ${formatUsd(usdValue)}`
-      : `${label}: ${formatEth(value, fallback)}`;
+      ? `${label}: ${formatNative(value, symbol)} equals ${formatUsd(usdValue)}`
+      : `${label}: ${formatNative(value, symbol, fallback)}`;
 
   return (
     <span
@@ -34,7 +36,7 @@ export function EthUsdValue({
       tabIndex={hasEth ? 0 : undefined}
     >
       <span className="tabular-nums">
-        {formatEth(value, fallback)}
+        {formatNative(value, symbol, fallback)}
         {showInlineUsd && usdValue !== null ? (
           <span className="text-slate-400"> ({formatUsd(usdValue)})</span>
         ) : null}
@@ -46,7 +48,7 @@ export function EthUsdValue({
         >
           <span className="block font-mono text-cyan-100">{usdValue !== null ? formatUsd(usdValue) : "USD unavailable"}</span>
           <span className="mt-1 block text-slate-400">
-            ETH/USD {hasPrice ? `$${formatNumber(ethUsd, 2)}` : "unavailable"}
+            {symbol}/USD {hasPrice ? `$${formatNumber(ethUsd, 2)}` : "unavailable"}
           </span>
         </span>
       ) : null}

@@ -1,30 +1,30 @@
-# Design — NFT Sweep Depth
+# Design - NFT Sweep Depth
 
 A locked visual system for the routed analytics app. Business logic, API routes,
 watchlist persistence, and read-only behavior remain outside this document.
 
 ## Genre
 
-Atmospheric technical terminal, restrained for an institutional analytics product.
+Modern-minimal technical workbench for institutional NFT liquidity research.
 
 ## Macrostructure family
 
-- App pages: `08 Photographic`, adapted so real NFT artwork anchors collection identity while data remains the primary working surface.
-- Utility pages: the same measurement grid without a decorative image requirement.
-- Content pages: compact technical document rhythm.
+- App pages: `05 Workbench`, with a compact command dock followed by the active analysis surface.
+- Collection pages: asymmetric workbench with floor depth as the dominant task and intelligence rails beside it.
+- Utility pages: index-first ledgers using the same control geometry and measurement rhythm.
 
 ## Theme
 
-- `--color-paper`: `oklch(13% 0.014 248)`
-- `--color-paper-2`: `oklch(17% 0.014 248)`
-- `--color-ink`: `oklch(95% 0.008 220)`
-- `--color-ink-2`: `oklch(84% 0.01 225)`
-- `--color-rule`: `oklch(28% 0.016 242)`
-- `--color-accent`: `oklch(76% 0.14 190)`
-- `--color-focus`: `oklch(80% 0.13 190)`
+- `--color-paper`: `oklch(10.5% 0.012 255)`
+- `--color-paper-2`: `oklch(14.5% 0.014 252)`
+- `--color-ink`: `oklch(96% 0.008 220)`
+- `--color-ink-2`: `oklch(83% 0.012 225)`
+- `--color-rule`: `oklch(25% 0.018 248)`
+- `--color-accent`: `oklch(80% 0.17 165)`
+- `--color-focus`: `oklch(83% 0.16 165)`
 
-NFT artwork supplies visual color. The interface itself uses one cyan signal accent,
-plus semantic success, warning, and danger colors only where data requires them.
+NFT artwork supplies most visual color. The interface uses one green signal accent,
+with small violet and amber network identifiers for Ethereum and ApeChain.
 
 ## Typography
 
@@ -41,7 +41,7 @@ targets at least 44 px.
 ## Motion
 
 - Market values interpolate slowly enough to remain readable.
-- Analyze uses a functional loading indicator.
+- Analyze and network detection use functional loading indicators.
 - Theme switching is immediate.
 - Reduced motion removes spatial animation and keeps state changes visible.
 
@@ -54,26 +54,26 @@ targets at least 44 px.
 
 ## CTA voice
 
-- Primary: restrained signal fill, 6 px radius, explicit verb.
+- Primary: restrained signal fill, 4 px radius, explicit verb.
 - Secondary: ruled outline, same height and radius.
 - Icon-only controls include an accessible name and tooltip.
 
 ## Per-page allowances
 
-- Real NFT artwork may be prominent on dashboard watchlist and collection identity.
+- Real NFT artwork is present but no longer determines the page structure.
 - App sections do not use generated decoration, glass, or ambient gradients.
 - Charts and tables may use semantic color when it communicates data.
 
 ## What pages MUST share
 
-- Top market strip and workspace navigation.
+- Top market strip, compact workspace navigation, and chain identifiers.
 - Accent placement, font pairing, control geometry, and focus behavior.
 - Unframed page bands separated by rules; cards are reserved for repeated records.
 - Dark and light themes with the same hue anchors.
 
 ## What pages MAY differ on
 
-- The size of the collection artwork.
+- The proportion of artwork to executable data.
 - Desktop column proportions based on the page's dominant task.
 - Table-to-stacked-row behavior on mobile.
 
@@ -87,9 +87,9 @@ The canonical CSS token export is stored in `tokens.css` at the project root.
 
 ```css
 @theme {
-  --color-paper: oklch(13% 0.014 248);
-  --color-ink: oklch(95% 0.008 220);
-  --color-accent: oklch(76% 0.14 190);
+  --color-paper: oklch(10.5% 0.012 255);
+  --color-ink: oklch(96% 0.008 220);
+  --color-accent: oklch(80% 0.17 165);
   --font-display: var(--font-geist);
   --font-body: var(--font-geist);
   --font-mono: var(--font-plex-mono);
@@ -107,15 +107,15 @@ The reusable DTCG export is stored in `tokens.json` at the project root.
 
 ```css
 :root {
-  --background: 0.13 0.014 248;
-  --foreground: 0.95 0.008 220;
-  --primary: 0.76 0.14 190;
-  --primary-foreground: 0.13 0.02 220;
-  --muted: 0.205 0.015 248;
-  --muted-foreground: 0.67 0.014 235;
-  --border: 0.28 0.016 242;
-  --input: 0.28 0.016 242;
-  --ring: 0.80 0.13 190;
-  --radius: 0.375rem;
+  --background: 0.105 0.012 255;
+  --foreground: 0.96 0.008 220;
+  --primary: 0.80 0.17 165;
+  --primary-foreground: 0.11 0.025 165;
+  --muted: 0.185 0.016 250;
+  --muted-foreground: 0.64 0.016 235;
+  --border: 0.25 0.018 248;
+  --input: 0.25 0.018 248;
+  --ring: 0.83 0.16 165;
+  --radius: 0.25rem;
 }
 ```

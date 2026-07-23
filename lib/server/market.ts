@@ -22,6 +22,12 @@ const MARKET_ASSETS = [
     yahooTicker: "ETH-USD",
   },
   {
+    coingeckoId: "apecoin",
+    name: "ApeCoin",
+    symbol: "APE",
+    yahooTicker: "APE-USD",
+  },
+  {
     coingeckoId: "hyperliquid",
     name: "Hyperliquid",
     symbol: "HYPE",
