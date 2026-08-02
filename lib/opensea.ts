@@ -112,6 +112,14 @@ export function fetchTopCollections(limit = 20) {
   return fetchOpenSea<unknown>(`/collections/top?${params.toString()}`);
 }
 
+export function fetchCollectionsBySales(limit = 20) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    sort_by: "one_day_sales",
+  });
+  return fetchOpenSea<unknown>(`/collections/top?${params.toString()}`);
+}
+
 export function fetchTrendingCollections(limit = 20) {
   const params = new URLSearchParams({
     limit: String(limit),

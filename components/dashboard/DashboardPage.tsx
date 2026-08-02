@@ -410,7 +410,15 @@ export function DashboardPage() {
           {discovery && hasMarketData ? (
             <>
               <MarketCollectionsTable items={discovery.top} title="Top traded" />
-              <MarketCollectionsTable compact items={discovery.trending} title="Trending now" />
+              <MarketCollectionsTable
+                compact
+                items={discovery.trending}
+                title={
+                  discovery.trendingMethod === "one_day_sales"
+                    ? "Trending by sales"
+                    : "Trending now"
+                }
+              />
             </>
           ) : null}
         </section>

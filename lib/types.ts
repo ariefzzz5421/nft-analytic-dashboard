@@ -141,6 +141,7 @@ export type CollectionDiscoveryResponse = {
   source: "opensea";
   top: MarketCollection[];
   trending: MarketCollection[];
+  trendingMethod: "opensea_trending" | "one_day_sales";
   warnings: string[];
 };
 

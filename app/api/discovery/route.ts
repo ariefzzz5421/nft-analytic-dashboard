@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { normalizeCollectionLeaderboard } from "@/lib/discovery";
 import {
+  fetchCollectionsBySales,
   fetchTopCollections,
   fetchTrendingCollections,
   OpenSeaApiError,
@@ -21,10 +22,19 @@ export async function GET() {
     fetchTrendingCollections(20),
   ]);
   const warnings: string[] = [];
+  let trendingMethod: CollectionDiscoveryResponse["trendingMethod"] = "opensea_trending";
+  let trendingPayload = trendingResult.status === "fulfilled" ? trendingResult.value : null;
 
   if (topResult.status === "rejected") warnings.push(readFailure(topResult.reason, "Top collections"));
   if (trendingResult.status === "rejected") {
-    warnings.push(readFailure(trendingResult.reason, "Trending collections"));
+    try {
+      trendingPayload = await fetchCollectionsBySales(20);
+      trendingMethod = "one_day_sales";
+      warnings.push("Trending uses OpenSea 24h sales ranking while its trending endpoint is unavailable.");
+    } catch (fallbackReason) {
+      warnings.push(readFailure(trendingResult.reason, "Trending collections"));
+      warnings.push(readFailure(fallbackReason, "24h sales fallback"));
+    }
   }
 
   const payload: CollectionDiscoveryResponse = {
@@ -35,10 +45,8 @@ export async function GET() {
       topResult.status === "fulfilled"
         ? normalizeCollectionLeaderboard(topResult.value)
         : [],
-    trending:
-      trendingResult.status === "fulfilled"
-        ? normalizeCollectionLeaderboard(trendingResult.value)
-        : [],
+    trending: trendingPayload ? normalizeCollectionLeaderboard(trendingPayload) : [],
+    trendingMethod,
     warnings,
   };
 
