@@ -3,7 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowUpRight, LoaderCircle, Plus, Radar, Search, ShieldCheck } from "lucide-react";
+import { ArrowUpRight, Clock3, LoaderCircle, Plus, RefreshCw, Search } from "lucide-react";
 import { CollectionSummary } from "@/components/CollectionSummary";
 import { CreatorActivityCard } from "@/components/CreatorActivityCard";
 import { ErrorState } from "@/components/ErrorState";
@@ -15,10 +15,12 @@ import { RefreshRateControl } from "@/components/RefreshRateControl";
 import { SweepLadderTable } from "@/components/SweepLadderTable";
 import { useLiveAssetPrice, useLiveEthPrice } from "@/components/useLiveEthPrice";
 import { WatchlistCard } from "@/components/dashboard/WatchlistCard";
+import { MarketCollectionsTable } from "@/components/dashboard/MarketCollectionsTable";
 import { getCollectionHref, getWatchlistKey, type SupportedChain } from "@/lib/chains";
 import { parseCollectionInput } from "@/lib/collection-input";
 import type {
   ApiErrorResponse,
+  CollectionDiscoveryResponse,
   CollectionResolution,
   SweepApiResponse,
 } from "@/lib/types";
@@ -54,6 +56,17 @@ async function resolveCollection(input: string) {
   return payload as CollectionResolution;
 }
 
+async function fetchDiscovery() {
+  const response = await fetch("/api/discovery", { cache: "no-store" });
+  const payload = (await response.json()) as CollectionDiscoveryResponse | ApiErrorResponse;
+
+  if ("top" in payload && "trending" in payload) {
+    return payload;
+  }
+
+  throw new Error("error" in payload ? payload.error : "OpenSea market feed is unavailable.");
+}
+
 export function DashboardPage() {
   const router = useRouter();
   const { hydrated, items, removeItem, upsertItem } = useWatchlist();
@@ -66,12 +79,49 @@ export function DashboardPage() {
   const [loadingAction, setLoadingAction] = useState(false);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const [refreshSeconds, setRefreshSeconds] = useState(60);
+  const [discovery, setDiscovery] = useState<CollectionDiscoveryResponse | null>(null);
+  const [discoveryError, setDiscoveryError] = useState("");
+  const [discoveryLoading, setDiscoveryLoading] = useState(true);
+  const [discoveryNonce, setDiscoveryNonce] = useState(0);
   const liveEthPrice = useLiveEthPrice();
   const liveNativePrice = useLiveAssetPrice(
     oneOff?.nativeCurrency.symbol ?? "ETH",
     oneOff?.nativeUsd,
   );
   const activeNativeUsd = liveNativePrice.priceUsd ?? oneOff?.nativeUsd ?? null;
+  const hasMarketData = Boolean(discovery?.top.length || discovery?.trending.length);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void fetchDiscovery()
+      .then((payload) => {
+        if (cancelled) return;
+        setDiscovery(payload);
+        setDiscoveryError("");
+      })
+      .catch((cause) => {
+        if (cancelled) return;
+        setDiscoveryError(
+          cause instanceof Error ? cause.message : "OpenSea market feed is unavailable.",
+        );
+      })
+      .finally(() => {
+        if (!cancelled) setDiscoveryLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [discoveryNonce]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setDiscoveryNonce((value) => value + 1);
+    }, 60_000);
+
+    return () => window.clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!hydrated || items.length === 0) {
@@ -223,33 +273,39 @@ export function DashboardPage() {
   return (
     <main className="app-main text-slate-100">
       <div className="app-frame dashboard-shell">
-        <header className="workbench-hero">
-          <div className="workbench-hero__copy">
-            <div className="read-only-marker">
-              <ShieldCheck size={14} aria-hidden="true" />
-              Read-only intelligence
-            </div>
-            <h1>Read the floor before it moves.</h1>
-            <p>
-              Resolve any supported collection, inspect executable listing depth, and verify wallet activity without connecting a trading wallet.
-            </p>
+        <header className="market-console-head">
+          <div>
+            <p className="terminal-kicker">NFT market overview</p>
+            <h1>Market terminal</h1>
           </div>
-          <div className="workbench-hero__networks">
-            <span>Network coverage</span>
-            <NetworkBadge chain="ethereum" />
-            <NetworkBadge chain="ape_chain" />
-            <p>Contract addresses are checked across both chains automatically.</p>
+          <div className="market-console-head__status">
+            <span
+              className={`live-pulse ${discovery && !hasMarketData ? "live-pulse--offline" : ""}`}
+              aria-hidden="true"
+            />
+            <span>OpenSea / 60s refresh</span>
+            <button
+              aria-label="Refresh market data"
+              className="icon-button"
+              disabled={discoveryLoading}
+              onClick={() => {
+                setDiscoveryLoading(true);
+                setDiscoveryNonce((value) => value + 1);
+              }}
+              title="Refresh market data"
+              type="button"
+            >
+              <RefreshCw className={discoveryLoading ? "animate-spin" : ""} size={15} />
+            </button>
           </div>
         </header>
 
-        <section className="command-dock">
+        <section className="command-dock command-dock--terminal">
           <div className="command-dock__identity">
-            <span className="command-dock__icon">
-              <Radar aria-hidden="true" size={20} />
-            </span>
+            <span className="command-index">01</span>
             <div>
-              <h2>Collection resolver</h2>
-              <p>OpenSea URL, slug, or EVM contract address</p>
+              <h2>Analyze collection</h2>
+              <p>Paste an OpenSea URL, collection slug, or contract</p>
             </div>
           </div>
           <form className="command-dock__form" onSubmit={analyzeOnce}>
@@ -308,6 +364,66 @@ export function DashboardPage() {
             </button>
           </form>
         </section>
+
+        <section className="market-discovery" aria-label="OpenSea collection market">
+          {discoveryLoading && !discovery ? (
+            <div className="market-feed-state">
+              <LoaderCircle className="animate-spin" size={18} aria-hidden="true" />
+              Loading OpenSea market data
+            </div>
+          ) : null}
+
+          {discoveryError && !discovery ? (
+            <div className="market-feed-state market-feed-state--error">
+              <strong>Market feed unavailable</strong>
+              <span>{discoveryError}</span>
+              <button
+                className="button button--secondary"
+                onClick={() => {
+                  setDiscoveryLoading(true);
+                  setDiscoveryNonce((value) => value + 1);
+                }}
+                type="button"
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
+
+          {discovery && !hasMarketData ? (
+            <div className="market-feed-state market-feed-state--error">
+              <strong>OpenSea market data is unavailable</strong>
+              <span>{discovery.warnings.join(" ") || "The live collection feed returned no rows."}</span>
+              <button
+                className="button button--secondary"
+                onClick={() => {
+                  setDiscoveryLoading(true);
+                  setDiscoveryNonce((value) => value + 1);
+                }}
+                type="button"
+              >
+                Retry
+              </button>
+            </div>
+          ) : null}
+
+          {discovery && hasMarketData ? (
+            <>
+              <MarketCollectionsTable items={discovery.top} title="Top traded" />
+              <MarketCollectionsTable compact items={discovery.trending} title="Trending now" />
+            </>
+          ) : null}
+        </section>
+
+        {discovery ? (
+          <div className="market-feed-note">
+            <span><Clock3 aria-hidden="true" size={13} /> Updated {new Date(discovery.lastUpdated).toLocaleTimeString()}</span>
+            <span>Source: OpenSea</span>
+            {hasMarketData && discovery.warnings.length ? (
+              <span>{discovery.warnings.join(" ")}</span>
+            ) : null}
+          </div>
+        ) : null}
 
         {error ? <ErrorState message={error} /> : null}
         {loadingAction ? <LoadingState /> : null}

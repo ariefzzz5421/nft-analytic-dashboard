@@ -1,5 +1,13 @@
 [
   {
+    "date": "2026-08-02",
+    "scope": "app",
+    "macrostructure": "20 Ecosystem Index",
+    "theme": "Exchange Terminal",
+    "enrichment": "live NFT artwork",
+    "brief": "OpenSea market discovery and capital-to-target floor depth terminal"
+  },
+  {
     "date": "2026-07-23",
     "scope": "app",
     "macrostructure": "05 Workbench",

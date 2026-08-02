@@ -28,13 +28,24 @@ function getApiKey() {
 }
 
 async function fetchOpenSea<T>(path: string): Promise<T> {
-  const response = await fetch(`${OPENSEA_BASE_URL}${path}`, {
-    headers: {
-      Accept: "application/json",
-      "X-API-KEY": getApiKey(),
-    },
-    next: { revalidate: OPENSEA_REFRESH_POLICY.cacheSeconds },
-  });
+  let response: Response;
+
+  try {
+    response = await fetch(`${OPENSEA_BASE_URL}${path}`, {
+      headers: {
+        Accept: "application/json",
+        "X-API-KEY": getApiKey(),
+      },
+      next: { revalidate: OPENSEA_REFRESH_POLICY.cacheSeconds },
+      signal: AbortSignal.timeout(12_000),
+    });
+  } catch (cause) {
+    if (cause instanceof Error && cause.name === "TimeoutError") {
+      throw new OpenSeaApiError("OpenSea did not respond within 12 seconds.", 504);
+    }
+
+    throw cause;
+  }
 
   if (!response.ok) {
     if (response.status === 429) {
@@ -91,6 +102,22 @@ export function fetchContract(chain: string, address: string) {
 
 export function fetchCollectionStats(slug: string) {
   return fetchOpenSea<unknown>(`/collections/${encodeURIComponent(slug)}/stats`);
+}
+
+export function fetchTopCollections(limit = 20) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    sort_by: "one_day_volume",
+  });
+  return fetchOpenSea<unknown>(`/collections/top?${params.toString()}`);
+}
+
+export function fetchTrendingCollections(limit = 20) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    timeframe: "one_day",
+  });
+  return fetchOpenSea<unknown>(`/collections/trending?${params.toString()}`);
 }
 
 export async function fetchAllListings(slug: string) {

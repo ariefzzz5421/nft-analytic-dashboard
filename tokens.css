@@ -12,11 +12,11 @@
   --color-muted-strong: oklch(53% 0.016 238);
   --color-rule: oklch(25% 0.018 248);
   --color-rule-strong: oklch(34% 0.022 242);
-  --color-accent: oklch(80% 0.17 165);
-  --color-accent-hover: oklch(87% 0.15 165);
-  --color-accent-ink: oklch(11% 0.025 165);
+  --color-accent: oklch(70% 0.18 245);
+  --color-accent-hover: oklch(78% 0.15 240);
+  --color-accent-ink: oklch(12% 0.028 250);
   --color-accent-border: color-mix(in oklch, var(--color-accent), transparent 60%);
-  --color-focus: oklch(83% 0.16 165);
+  --color-focus: oklch(74% 0.17 245);
   --color-network-ethereum: oklch(72% 0.15 285);
   --color-network-apechain: oklch(82% 0.16 78);
   --color-success: oklch(76% 0.14 150);
@@ -26,9 +26,9 @@
   --color-overlay: oklch(8% 0.012 248 / 0.72);
   --color-chart-grid: oklch(28% 0.016 242);
   --color-chart-axis: oklch(67% 0.014 235);
-  --color-chart-primary: oklch(76% 0.14 190);
+  --color-chart-primary: oklch(70% 0.18 245);
   --color-chart-positive: oklch(76% 0.14 150);
-  --color-chart-cursor-primary: oklch(76% 0.14 190 / 0.08);
+  --color-chart-cursor-primary: oklch(70% 0.18 245 / 0.08);
   --color-chart-cursor-positive: oklch(76% 0.14 150 / 0.08);
 
   --font-display: var(--font-geist), ui-sans-serif, sans-serif;
@@ -118,11 +118,11 @@
   --color-muted-strong: oklch(54% 0.015 245);
   --color-rule: oklch(84% 0.014 245);
   --color-rule-strong: oklch(72% 0.018 245);
-  --color-accent: oklch(48% 0.15 165);
-  --color-accent-hover: oklch(40% 0.15 165);
-  --color-accent-ink: oklch(99% 0.004 165);
+  --color-accent: oklch(50% 0.18 250);
+  --color-accent-hover: oklch(43% 0.18 250);
+  --color-accent-ink: oklch(99% 0.004 250);
   --color-accent-border: color-mix(in oklch, var(--color-accent), transparent 55%);
-  --color-focus: oklch(45% 0.17 165);
+  --color-focus: oklch(50% 0.19 250);
   --color-success: oklch(50% 0.13 150);
   --color-positive: var(--color-success);
   --color-warning: oklch(56% 0.14 75);
@@ -130,8 +130,8 @@
   --color-overlay: oklch(20% 0.02 245 / 0.28);
   --color-chart-grid: oklch(82% 0.014 245);
   --color-chart-axis: oklch(46% 0.016 245);
-  --color-chart-primary: oklch(52% 0.15 205);
+  --color-chart-primary: oklch(50% 0.18 250);
   --color-chart-positive: oklch(50% 0.13 150);
-  --color-chart-cursor-primary: oklch(52% 0.15 205 / 0.08);
+  --color-chart-cursor-primary: oklch(50% 0.18 250 / 0.08);
   --color-chart-cursor-positive: oklch(50% 0.13 150 / 0.08);
 }

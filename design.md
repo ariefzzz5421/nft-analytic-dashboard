@@ -5,12 +5,12 @@ watchlist persistence, and read-only behavior remain outside this document.
 
 ## Genre
 
-Modern-minimal technical workbench for institutional NFT liquidity research.
+Dense exchange terminal for institutional NFT liquidity research.
 
 ## Macrostructure family
 
-- App pages: `05 Workbench`, with a compact command dock followed by the active analysis surface.
-- Collection pages: asymmetric workbench with floor depth as the dominant task and intelligence rails beside it.
+- App pages: `20 Ecosystem Index`, with live market discovery first and a compact collection resolver above it.
+- Collection pages: asymmetric exchange terminal with capital-to-target as the dominant task and intelligence rails beside it.
 - Utility pages: index-first ledgers using the same control geometry and measurement rhythm.
 
 ## Theme
@@ -20,11 +20,11 @@ Modern-minimal technical workbench for institutional NFT liquidity research.
 - `--color-ink`: `oklch(96% 0.008 220)`
 - `--color-ink-2`: `oklch(83% 0.012 225)`
 - `--color-rule`: `oklch(25% 0.018 248)`
-- `--color-accent`: `oklch(80% 0.17 165)`
-- `--color-focus`: `oklch(83% 0.16 165)`
+- `--color-accent`: `oklch(70% 0.18 245)`
+- `--color-focus`: `oklch(74% 0.17 245)`
 
-NFT artwork supplies most visual color. The interface uses one green signal accent,
-with small violet and amber network identifiers for Ethereum and ApeChain.
+NFT artwork supplies most visual color. The interface uses one crisp blue interaction accent,
+green/red only for market direction, and small violet and amber network identifiers.
 
 ## Typography
 
@@ -89,7 +89,7 @@ The canonical CSS token export is stored in `tokens.css` at the project root.
 @theme {
   --color-paper: oklch(10.5% 0.012 255);
   --color-ink: oklch(96% 0.008 220);
-  --color-accent: oklch(80% 0.17 165);
+  --color-accent: oklch(70% 0.18 245);
   --font-display: var(--font-geist);
   --font-body: var(--font-geist);
   --font-mono: var(--font-plex-mono);
@@ -109,13 +109,13 @@ The reusable DTCG export is stored in `tokens.json` at the project root.
 :root {
   --background: 0.105 0.012 255;
   --foreground: 0.96 0.008 220;
-  --primary: 0.80 0.17 165;
-  --primary-foreground: 0.11 0.025 165;
+  --primary: 0.70 0.18 245;
+  --primary-foreground: 0.12 0.028 250;
   --muted: 0.185 0.016 250;
   --muted-foreground: 0.64 0.016 235;
   --border: 0.25 0.018 248;
   --input: 0.25 0.018 248;
-  --ring: 0.83 0.16 165;
+  --ring: 0.74 0.17 245;
   --radius: 0.25rem;
 }
 ```

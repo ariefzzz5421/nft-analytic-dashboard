@@ -1,9 +1,9 @@
 {
-  "date": "2026-07-19",
+  "date": "2026-08-02",
   "framework": "Next.js 16.2.9 App Router",
-  "font": "Inter/system stack hard-coded in app/globals.css",
-  "palette": "Hex root tokens plus direct Tailwind slate/cyan utilities",
+  "font": "Geist for interface text and IBM Plex Mono for market values",
+  "palette": "Semantic OKLCH tokens with blue interaction, green/red market direction, and NFT artwork color",
   "motion": "No motion library; CSS ticker and analyze loading animation",
-  "spacing": "Tailwind defaults; no semantic scale",
+  "spacing": "Four-point semantic scale in tokens.css",
   "preserve": ["Tailwind 4", "Lucide icons", "dark/light toggle", "read-only behavior"]
 }

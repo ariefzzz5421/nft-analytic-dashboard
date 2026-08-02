@@ -118,6 +118,32 @@ export type MarketPricesResponse = {
   lastUpdated: string;
 };
 
+export type MarketCollection = {
+  analyzable: boolean;
+  chain: string;
+  floor: number | null;
+  floorChange24h: number | null;
+  imageUrl: string | null;
+  name: string;
+  nativeSymbol: string;
+  owners: number | null;
+  rank: number;
+  sales24h: number | null;
+  slug: string;
+  totalVolume: number | null;
+  verified: boolean;
+  volume24h: number | null;
+};
+
+export type CollectionDiscoveryResponse = {
+  lastUpdated: string;
+  refreshSeconds: number;
+  source: "opensea";
+  top: MarketCollection[];
+  trending: MarketCollection[];
+  warnings: string[];
+};
+
 export type SweepApiResponse = {
   chain: SupportedChain;
   slug: string;

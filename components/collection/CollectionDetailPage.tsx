@@ -386,6 +386,12 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
               </span>
             ) : null}
           </div>
+          <nav aria-label="Collection analysis" className="collection-tabs">
+            <a className="collection-tabs__active" href="#depth">Depth</a>
+            <a href="#holders">Holders</a>
+            <a href="#activity">Activity</a>
+            <a href="#wallets">Wallet tracking</a>
+          </nav>
         </header>
 
         {error ? <ErrorState message={error} onRetry={refresh} /> : null}
@@ -401,7 +407,50 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
               symbol={nativeSymbol}
             />
 
-            <section className="sweep-workspace">
+            <section className="execution-strip" aria-label="Next floor execution estimate">
+              <div>
+                <p>Current floor</p>
+                <strong>
+                  <EthUsdValue
+                    ethUsd={activeNativeUsd}
+                    label="Current floor"
+                    showInlineUsd
+                    symbol={nativeSymbol}
+                    value={data.collection.floor}
+                  />
+                </strong>
+              </div>
+              <div>
+                <p>Selected target</p>
+                <strong>
+                  <EthUsdValue
+                    ethUsd={activeNativeUsd}
+                    label="Selected target"
+                    showInlineUsd
+                    symbol={nativeSymbol}
+                    value={nextMeaningfulTarget?.targetFloor ?? null}
+                  />
+                </strong>
+              </div>
+              <div>
+                <p>NFTs below target</p>
+                <strong>{nextMeaningfulTarget?.itemsToSweep ?? 0}</strong>
+              </div>
+              <div className="execution-strip__capital">
+                <p>Capital required</p>
+                <strong>
+                  <EthUsdValue
+                    ethUsd={activeNativeUsd}
+                    label="Capital required"
+                    showInlineUsd
+                    symbol={nativeSymbol}
+                    value={nextMeaningfulTarget?.costEth ?? null}
+                  />
+                </strong>
+              </div>
+            </section>
+
+            <section className="sweep-workspace" id="depth">
               <div className="sweep-workspace__primary">
                 <div className="mb-4 flex flex-col gap-4">
                   <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -515,11 +564,11 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
                       </div>
                     </div>
 
-                    <div className="rounded-md border border-cyan-400/20 bg-cyan-400/8 p-3">
-                      <p className="text-xs uppercase tracking-[0.16em] text-cyan-200">Next target</p>
+                    <div className="target-capital-panel">
+                      <p>Capital required</p>
                       {nextMeaningfulTarget ? (
-                        <div className="mt-2 grid gap-1 text-sm">
-                          <p className="font-mono text-lg font-semibold text-white">
+                        <div>
+                          <p className="target-capital-panel__floor">
                             <EthUsdValue
                               ethUsd={activeNativeUsd}
                               label="Next target floor"
@@ -528,7 +577,7 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
                               value={nextMeaningfulTarget.targetFloor}
                             />
                           </p>
-                          <p className="font-mono text-cyan-100">
+                          <p className="target-capital-panel__cost">
                             <EthUsdValue
                               ethUsd={activeNativeUsd}
                               label="Next target cost"
@@ -536,8 +585,8 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
                               value={nextMeaningfulTarget.costEth}
                             />
                           </p>
-                          <p className="font-mono text-slate-300">{formatUsd(nextMeaningfulTarget.costUsd)}</p>
-                          <p className="text-slate-400">{nextMeaningfulTarget.itemsToSweep} items</p>
+                          <p className="target-capital-panel__usd">{formatUsd(nextMeaningfulTarget.costUsd)}</p>
+                          <p className="target-capital-panel__items">Buy {nextMeaningfulTarget.itemsToSweep} listed NFTs</p>
                         </div>
                       ) : (
                         <p className="mt-2 text-sm text-slate-400">No higher target selected.</p>
@@ -627,8 +676,8 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
               <BidSupportCard collection={data.collection} ethUsd={activeNativeUsd} risk={data.risk} symbol={nativeSymbol} />
             </section>
 
-            <CreatorActivityCard data={data} ethUsd={activeNativeUsd} />
-            <HolderAnalysisCard data={data} ethUsd={activeNativeUsd} />
+            <div id="activity"><CreatorActivityCard data={data} ethUsd={activeNativeUsd} /></div>
+            <div id="holders"><HolderAnalysisCard data={data} ethUsd={activeNativeUsd} /></div>
 
             <section className="chart-pair">
               <SweepCostChart data={ladder} symbol={nativeSymbol} />
@@ -637,8 +686,9 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
 
             <ActivityTable chain={chain} slug={slug} />
 
-            <TrackedWalletsPanel
-              addWallet={(wallet) => {
+            <div id="wallets">
+              <TrackedWalletsPanel
+                addWallet={(wallet) => {
                 if (!watchlistItem) {
                   upsertItem({
                     chain,
@@ -650,12 +700,13 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
                 }
                 addWallet(slug, wallet, chain);
               }}
-              chain={chain}
-              ethUsd={activeNativeUsd ?? data.nativeUsd}
-              onWalletData={handleWalletData}
-              removeWallet={(address) => removeWallet(slug, address, chain)}
-              wallets={activeItem.devWallets}
-            />
+                chain={chain}
+                ethUsd={activeNativeUsd ?? data.nativeUsd}
+                onWalletData={handleWalletData}
+                removeWallet={(address) => removeWallet(slug, address, chain)}
+                wallets={activeItem.devWallets}
+              />
+            </div>
 
             <EthUsdConverter
               ethUsd={liveEthPrice.priceUsd}
