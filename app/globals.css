@@ -2618,3 +2618,261 @@ a {
     min-height: 4rem;
   }
 }
+
+/* Hallmark · 2026-08-04 refinement · exchange terminal
+ * Pre-emit critique: P5 H5 E4 S5 R5 V4
+ * Search command bar · capital depth · ownership · listing liquidity
+ */
+
+.command-dock--terminal {
+  grid-template-columns: minmax(15rem, 0.34fr) minmax(0, 1.66fr);
+  overflow: visible;
+}
+
+.command-dock--terminal .command-dock__form {
+  position: relative;
+  grid-template-columns: minmax(18rem, 1fr) auto auto;
+  align-items: start;
+}
+
+.command-dock--terminal .command-dock__field {
+  position: relative;
+  z-index: 6;
+}
+
+.collection-search-results {
+  position: absolute;
+  z-index: 20;
+  inset: calc(100% + 1px) -1px auto;
+  max-height: 23rem;
+  overflow-y: auto;
+  border: var(--rule-thin) solid var(--color-rule-strong);
+  border-top: 0;
+  background: var(--color-paper-2);
+  box-shadow: 0 1rem 2rem color-mix(in oklch, var(--color-paper), transparent 12%);
+}
+
+.collection-search-result {
+  display: grid;
+  width: 100%;
+  min-height: 3.75rem;
+  grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+  padding: var(--space-sm) var(--space-md);
+  align-items: center;
+  gap: var(--space-sm);
+  border-bottom: var(--rule-thin) solid var(--color-rule);
+  color: var(--color-ink-2);
+  text-align: start;
+}
+
+.collection-search-result:last-child {
+  border-bottom: 0;
+}
+
+.collection-search-result:hover,
+.collection-search-result:focus-visible {
+  background: var(--color-paper-3);
+  color: var(--color-ink);
+  outline: 0;
+  box-shadow: inset 3px 0 0 var(--color-accent);
+}
+
+.collection-search-result:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.collection-search-result__art {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  overflow: hidden;
+  place-items: center;
+  border: var(--rule-thin) solid var(--color-rule);
+  border-radius: var(--radius-media);
+  background: var(--color-paper-3);
+  font-family: var(--font-mono);
+}
+
+.collection-search-result__art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.collection-search-result > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: var(--space-3xs);
+}
+
+.collection-search-result strong,
+.collection-search-result small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-search-result small,
+.collection-search-result > span:last-child {
+  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+}
+
+.collection-search-result > span:last-child {
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.market-structure {
+  border-bottom: var(--rule-thin) solid var(--color-rule-strong);
+}
+
+.market-structure__header,
+.chart-panel__header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-lg);
+}
+
+.market-structure__header {
+  min-height: 6rem;
+  padding: var(--space-md);
+  border-bottom: var(--rule-thin) solid var(--color-rule-strong);
+}
+
+.market-structure__header h2,
+.chart-panel__header h2 {
+  margin-block-start: var(--space-2xs);
+  color: var(--color-ink);
+  font-size: var(--text-md);
+}
+
+.market-structure__header > p,
+.chart-panel__header > span,
+.chart-panel__note {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+}
+
+.market-structure .chart-pair {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+}
+
+.market-structure .chart-panel {
+  padding: var(--space-md);
+  border: 0;
+}
+
+.market-structure .chart-panel + .chart-panel {
+  border-inline-start: var(--rule-thin) solid var(--color-rule-strong);
+}
+
+.chart-panel__header {
+  min-height: 3.75rem;
+  margin-block-end: var(--space-sm);
+}
+
+.chart-tooltip {
+  display: grid;
+  gap: var(--space-3xs);
+  padding: var(--space-sm);
+  border: var(--rule-thin) solid var(--color-accent-border);
+  background: var(--color-paper-2);
+  color: var(--color-ink-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  box-shadow: 0 0.75rem 1.5rem color-mix(in oklch, var(--color-paper), transparent 18%);
+}
+
+.chart-tooltip strong {
+  color: var(--color-ink);
+}
+
+.chart-panel__note {
+  min-height: 2.5rem;
+  padding-block-start: var(--space-sm);
+  border-top: var(--rule-thin) solid var(--color-rule);
+  line-height: 1.5;
+}
+
+.chart-empty {
+  display: grid;
+  min-height: 20rem;
+  padding: var(--space-lg);
+  place-items: center;
+  border-block: var(--rule-thin) dashed var(--color-rule);
+  color: var(--color-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.depth-cost-chart .chart-panel {
+  padding-inline: var(--space-md);
+}
+
+@media (max-width: 72rem) {
+  .command-dock--terminal {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .command-dock--terminal .command-dock__identity {
+    border-inline-end: 0;
+    border-bottom: var(--rule-thin) solid var(--color-rule);
+  }
+
+  .market-structure .chart-pair {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .market-structure .chart-panel + .chart-panel {
+    border-inline-start: 0;
+    border-top: var(--rule-thin) solid var(--color-rule-strong);
+  }
+}
+
+@media (max-width: 48rem) {
+  .command-dock--terminal .command-dock__form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .command-dock--terminal .command-dock__field {
+    grid-column: 1 / -1;
+  }
+
+  .command-dock--terminal .command-dock__form .button {
+    width: 100%;
+  }
+
+  .market-structure__header,
+  .chart-panel__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-xs);
+  }
+
+  .market-structure__header {
+    padding-block: var(--space-md);
+  }
+}
+
+@media (max-width: 23.4375rem) {
+  .command-dock--terminal .command-dock__form {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .command-dock--terminal .command-dock__field {
+    grid-column: auto;
+  }
+
+  .collection-search-result {
+    grid-template-columns: 2.25rem minmax(0, 1fr);
+  }
+
+  .collection-search-result > span:last-child {
+    display: none;
+  }
+}

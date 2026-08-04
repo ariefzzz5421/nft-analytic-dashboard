@@ -11,6 +11,7 @@ import { EthUsdValue } from "@/components/EthUsdValue";
 import { EthUsdConverter } from "@/components/EthUsdConverter";
 import { ErrorState } from "@/components/ErrorState";
 import { HolderAnalysisCard } from "@/components/HolderAnalysisCard";
+import { HolderDistributionChart } from "@/components/HolderDistributionChart";
 import { ListingDistributionChart } from "@/components/ListingDistributionChart";
 import { LoadingState } from "@/components/LoadingState";
 import { NetworkBadge } from "@/components/NetworkBadge";
@@ -676,13 +677,27 @@ export function CollectionDetailPage({ chain, slug }: CollectionDetailPageProps)
               <BidSupportCard collection={data.collection} ethUsd={activeNativeUsd} risk={data.risk} symbol={nativeSymbol} />
             </section>
 
-            <div id="activity"><CreatorActivityCard data={data} ethUsd={activeNativeUsd} /></div>
-            <div id="holders"><HolderAnalysisCard data={data} ethUsd={activeNativeUsd} /></div>
-
-            <section className="chart-pair">
-              <SweepCostChart data={ladder} symbol={nativeSymbol} />
-              <ListingDistributionChart data={data.listingDistribution} symbol={nativeSymbol} />
+            <section className="market-structure" id="holders">
+              <header className="market-structure__header">
+                <div>
+                  <p className="terminal-kicker">Collection structure</p>
+                  <h2>Ownership and sell-side liquidity</h2>
+                </div>
+                <p>Holder concentration and active listing prices for this collection.</p>
+              </header>
+              <div className="chart-pair">
+                <HolderDistributionChart data={data.holderAnalysis} />
+                <ListingDistributionChart data={data.listingDistribution} symbol={nativeSymbol} />
+              </div>
             </section>
+
+            <HolderAnalysisCard data={data} />
+
+            <section className="depth-cost-chart">
+              <SweepCostChart data={ladder} symbol={nativeSymbol} />
+            </section>
+
+            <div id="activity"><CreatorActivityCard data={data} ethUsd={activeNativeUsd} /></div>
 
             <ActivityTable chain={chain} slug={slug} />
 

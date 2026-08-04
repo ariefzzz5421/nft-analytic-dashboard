@@ -4,6 +4,7 @@ import {
   fetchAllCollectionOffers,
   fetchAllListings,
   fetchCollection,
+  fetchCollectionHolders,
   fetchCollectionStats,
   getApeUsdFallback,
   getEthUsdFallback,
@@ -12,6 +13,7 @@ import {
 import { normalizeListings, normalizeOfferPrice } from "@/lib/normalize";
 import { OPENSEA_REFRESH_POLICY } from "@/lib/refresh";
 import { fetchMarketPrices } from "@/lib/server/market";
+import { buildHolderAnalysis, emptyHolderAnalysis } from "@/lib/holders";
 import { extractSlug } from "@/lib/slug";
 import {
   buildRiskSummary,
@@ -331,11 +333,12 @@ export async function GET(request: NextRequest, context: RouteContext) {
   }
 
   try {
-    const [collectionPayload, statsPayload, rawListings, marketPrices] = await Promise.all([
+    const [collectionPayload, statsPayload, rawListings, marketPrices, holderResult] = await Promise.all([
       fetchCollection(slug),
       fetchCollectionStats(slug),
       fetchAllListings(slug),
       fetchMarketPrices(),
+      fetchCollectionHolders(slug).catch(() => null),
     ]);
 
     let rawOffers: unknown[] = [];
@@ -377,6 +380,14 @@ export async function GET(request: NextRequest, context: RouteContext) {
       collection: collectionWithFloor,
       ethUsd: nativeUsd,
       lastUpdated: new Date().toISOString(),
+      holderAnalysis: holderResult
+        ? buildHolderAnalysis({
+            complete: holderResult.complete,
+            holders: holderResult.holders,
+            supply: collectionWithFloor.supply,
+            totalHolders: collectionWithFloor.owners,
+          })
+        : emptyHolderAnalysis(collectionWithFloor.owners),
       listingDistribution: calculateListingDistribution(listings),
       listings,
       nativeCurrency: {

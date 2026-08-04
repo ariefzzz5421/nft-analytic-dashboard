@@ -16,12 +16,19 @@ import { SweepLadderTable } from "@/components/SweepLadderTable";
 import { useLiveAssetPrice, useLiveEthPrice } from "@/components/useLiveEthPrice";
 import { WatchlistCard } from "@/components/dashboard/WatchlistCard";
 import { MarketCollectionsTable } from "@/components/dashboard/MarketCollectionsTable";
-import { getCollectionHref, getWatchlistKey, type SupportedChain } from "@/lib/chains";
+import {
+  getCollectionHref,
+  getWatchlistKey,
+  isSupportedChain,
+  type SupportedChain,
+} from "@/lib/chains";
 import { parseCollectionInput } from "@/lib/collection-input";
 import type {
   ApiErrorResponse,
   CollectionDiscoveryResponse,
   CollectionResolution,
+  CollectionSearchResponse,
+  MarketCollection,
   SweepApiResponse,
 } from "@/lib/types";
 import { useWatchlist } from "@/lib/watchlist";
@@ -67,6 +74,18 @@ async function fetchDiscovery() {
   throw new Error("error" in payload ? payload.error : "OpenSea market feed is unavailable.");
 }
 
+async function searchCollectionNames(query: string) {
+  const params = new URLSearchParams({ q: query });
+  const response = await fetch(`/api/search?${params.toString()}`);
+  const payload = (await response.json()) as CollectionSearchResponse | ApiErrorResponse;
+
+  if (!response.ok) {
+    throw new Error("error" in payload ? payload.error : "Collection search is unavailable.");
+  }
+
+  return (payload as CollectionSearchResponse).results;
+}
+
 export function DashboardPage() {
   const router = useRouter();
   const { hydrated, items, removeItem, upsertItem } = useWatchlist();
@@ -74,6 +93,9 @@ export function DashboardPage() {
   const [oneOff, setOneOff] = useState<SweepApiResponse | null>(null);
   const [resolution, setResolution] = useState<CollectionResolution | null>(null);
   const [detecting, setDetecting] = useState(false);
+  const [searchResults, setSearchResults] = useState<MarketCollection[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [searchError, setSearchError] = useState("");
   const [records, setRecords] = useState<Record<string, SweepRecord>>({});
   const [error, setError] = useState("");
   const [loadingAction, setLoadingAction] = useState(false);
@@ -208,6 +230,46 @@ export function DashboardPage() {
   }, [query]);
 
   useEffect(() => {
+    const trimmed = query.trim();
+    const parsed = parseCollectionInput(trimmed);
+
+    if (
+      trimmed.length < 2 ||
+      parsed?.kind === "contract" ||
+      /^https?:\/\//i.test(trimmed) ||
+      resolution?.slug === trimmed
+    ) {
+      return;
+    }
+
+    let cancelled = false;
+    const timeout = window.setTimeout(() => {
+      setSearching(true);
+      void searchCollectionNames(trimmed)
+        .then((results) => {
+          if (!cancelled) {
+            setSearchResults(results);
+            setSearchError("");
+          }
+        })
+        .catch(() => {
+          if (!cancelled) {
+            setSearchResults([]);
+            setSearchError("Name search unavailable; paste an exact slug, URL, or contract.");
+          }
+        })
+        .finally(() => {
+          if (!cancelled) setSearching(false);
+        });
+    }, 320);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeout);
+    };
+  }, [query, resolution?.slug]);
+
+  useEffect(() => {
     if (!hydrated || items.length === 0 || refreshSeconds <= 0) {
       return;
     }
@@ -225,6 +287,7 @@ export function DashboardPage() {
     setLoadingAction(true);
     setError("");
     setOneOff(null);
+    setSearchResults([]);
 
     try {
       const nextResolution = resolution ?? (await resolveCollection(query));
@@ -304,8 +367,8 @@ export function DashboardPage() {
           <div className="command-dock__identity">
             <span className="command-index">01</span>
             <div>
-              <h2>Analyze collection</h2>
-              <p>Paste an OpenSea URL, collection slug, or contract</p>
+              <h2>Floor depth checker</h2>
+              <p>Find a collection, choose a target floor, see the capital required</p>
             </div>
           </div>
           <form className="command-dock__form" onSubmit={analyzeOnce}>
@@ -319,8 +382,11 @@ export function DashboardPage() {
                   setError("");
                   setResolution(null);
                   setDetecting(false);
+                  setSearchResults([]);
+                  setSearching(false);
+                  setSearchError("");
                 }}
-                placeholder="Paste 0x contract, OpenSea URL, or collection slug"
+                placeholder="Search collection name, paste OpenSea URL, slug, or 0x contract"
                 value={query}
               />
               <span className="command-dock__detection" aria-live="polite">
@@ -334,10 +400,58 @@ export function DashboardPage() {
                     <NetworkBadge chain={resolution.chain} compact />
                     {resolution.slug}
                   </>
+                ) : searching ? (
+                  <>
+                    <LoaderCircle className="animate-spin" size={13} aria-hidden="true" />
+                    Searching OpenSea
+                  </>
+                ) : searchError ? (
+                  searchError
                 ) : (
-                  "Network detection runs automatically"
+                  "Ethereum and ApeChain are detected automatically"
                 )}
               </span>
+              {searchResults.length ? (
+                <div className="collection-search-results" role="listbox" aria-label="Collection results">
+                  {searchResults.map((item) => (
+                    <button
+                      className="collection-search-result"
+                      disabled={!item.analyzable || !isSupportedChain(item.chain)}
+                      key={`${item.chain}-${item.slug}`}
+                      onClick={() => {
+                        if (!isSupportedChain(item.chain)) return;
+                        setQuery(item.slug);
+                        setResolution({
+                          chain: item.chain,
+                          collectionName: item.name,
+                          contractAddress: null,
+                          detectedFrom: "slug",
+                          slug: item.slug,
+                        });
+                        setSearchResults([]);
+                        setSearchError("");
+                      }}
+                      role="option"
+                      aria-selected={false}
+                      type="button"
+                    >
+                      <span className="collection-search-result__art">
+                        {item.imageUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img alt="" src={item.imageUrl} />
+                        ) : (
+                          item.name.slice(0, 1).toUpperCase()
+                        )}
+                      </span>
+                      <span>
+                        <strong>{item.name}</strong>
+                        <small>{item.slug}</small>
+                      </span>
+                      <span>{item.chain.replaceAll("_", " ")}</span>
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             </label>
             <button
               className={`button button--secondary ${
@@ -351,7 +465,7 @@ export function DashboardPage() {
               ) : (
                 <Search size={16} aria-hidden="true" />
               )}
-              Analyze
+              Analyze depth
             </button>
             <button
               className="button button--primary"
@@ -463,7 +577,7 @@ export function DashboardPage() {
               symbol={oneOff.nativeCurrency.symbol}
             />
             <CreatorActivityCard data={oneOff} ethUsd={activeNativeUsd} />
-            <HolderAnalysisCard data={oneOff} ethUsd={activeNativeUsd} />
+            <HolderAnalysisCard data={oneOff} />
             <Link
               className="analysis-result__link"
               href={getCollectionHref(oneOff.slug, oneOff.chain)}

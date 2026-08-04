@@ -186,6 +186,14 @@ function normalizeCollection(row: unknown, rank: number): MarketCollection | nul
   };
 }
 
+export function normalizeCollectionSearch(payload: unknown, limit = 8) {
+  return readCollectionRows(payload)
+    .filter((row) => !isRecord(row) || row.type === undefined || row.type === "collection")
+    .map((row, index) => normalizeCollection(row, index + 1))
+    .filter((row): row is MarketCollection => Boolean(row))
+    .slice(0, limit);
+}
+
 export function normalizeCollectionLeaderboard(payload: unknown, limit = 20) {
   return readCollectionRows(payload)
     .map((row, index) => normalizeCollection(row, index + 1))

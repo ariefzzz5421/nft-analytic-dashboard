@@ -2,14 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { ExternalLink, Network } from "lucide-react";
-import { EthUsdValue } from "@/components/EthUsdValue";
 import { formatAddress, formatNumber, formatPercent } from "@/lib/format";
 import { getAddressExplorerUrl, getChainConfig } from "@/lib/chains";
 import type { NormalizedListing, SweepApiResponse } from "@/lib/types";
 
 type HolderAnalysisCardProps = {
   data: SweepApiResponse;
-  ethUsd: number | null | undefined;
 };
 
 const holdersPerPage = 15;
@@ -41,9 +39,9 @@ function buildTopHolders(listings: NormalizedListing[]) {
     });
 }
 
-export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
+export function HolderAnalysisCard({ data }: HolderAnalysisCardProps) {
   const [page, setPage] = useState(1);
-  const topHolders = useMemo(() => buildTopHolders(data.listings), [data.listings]);
+  const listedSellers = useMemo(() => buildTopHolders(data.listings), [data.listings]);
   const { collection } = data;
   const chainConfig = getChainConfig(data.chain);
   const ownerSpread =
@@ -54,10 +52,22 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
     collection.owners !== null && collection.owners > 0 && collection.supply !== null
       ? collection.supply / collection.owners
       : null;
-  const activeSellerCount = topHolders.length || null;
-  const totalPages = Math.max(1, Math.ceil(topHolders.length / holdersPerPage));
+  const activeSellerCount = listedSellers.length || null;
+  const holderRows = data.holderAnalysis.topHolders;
+  const usingHolderApi = holderRows.length > 0;
+  const fallbackRows = listedSellers.map((seller) => ({
+    address: seller.id,
+    quantity: seller.listings.length,
+    supplyShare:
+      collection.supply && collection.supply > 0
+        ? (seller.listings.length / collection.supply) * 100
+        : null,
+  }));
+  const rows = usingHolderApi ? holderRows : fallbackRows;
+  const listedCountByWallet = new Map(listedSellers.map((seller) => [seller.id, seller.listings.length]));
+  const totalPages = Math.max(1, Math.ceil(rows.length / holdersPerPage));
   const activePage = Math.min(page, totalPages);
-  const visibleHolders = topHolders.slice(
+  const visibleHolders = rows.slice(
     (activePage - 1) * holdersPerPage,
     activePage * holdersPerPage,
   );
@@ -70,8 +80,12 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
             <Network size={20} aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-white">Top Holder List</h2>
-            <p className="text-sm text-slate-400">Listed wallet groups from active OpenSea listings.</p>
+            <h2 className="text-lg font-semibold text-white">Holder ledger</h2>
+            <p className="text-sm text-slate-400">
+              {usingHolderApi
+                ? "Largest indexed holders, ranked by NFTs owned."
+                : "Holder detail is unavailable; showing active listed wallets instead."}
+            </p>
           </div>
         </div>
 
@@ -107,33 +121,28 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
         <div className="grid grid-cols-[52px_minmax(0,1.1fr)_150px_130px_120px] gap-3 border-b border-slate-800 px-3 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-slate-500 max-lg:hidden">
           <span>Rank</span>
           <span>Holder</span>
-          <span>NFTs / share</span>
-          <span>Total value</span>
+          <span>{usingHolderApi ? "NFTs held" : "NFTs listed"}</span>
+          <span>Active listings</span>
           <span>Supply share</span>
         </div>
         <div className="divide-y divide-slate-800">
           {visibleHolders.length ? (
             visibleHolders.map((holder, index) => {
-              const listedShare =
-                data.listings.length > 0 ? (holder.listings.length / data.listings.length) * 100 : null;
-              const supplyShare =
-                collection.supply !== null && collection.supply > 0
-                  ? (holder.listings.length / collection.supply) * 100
-                  : null;
+              const listedCount = listedCountByWallet.get(holder.address) ?? 0;
 
               return (
                 <div
                   className="grid gap-3 px-3 py-3 text-sm text-slate-300 lg:grid-cols-[52px_minmax(0,1.1fr)_150px_130px_120px] lg:items-center"
-                  key={holder.id}
+                  key={holder.address}
                 >
                   <span className="font-mono text-slate-500">#{(activePage - 1) * holdersPerPage + index + 1}</span>
                   <div className="min-w-0">
                     <div className="flex min-w-0 items-center gap-2">
-                      <p className="min-w-0 flex-1 truncate font-mono text-white">{formatAddress(holder.id)}</p>
+                      <p className="min-w-0 flex-1 truncate font-mono text-white">{formatAddress(holder.address)}</p>
                       <a
-                        aria-label={`Open ${holder.label} on ${chainConfig.explorerName}`}
+                        aria-label={`Open ${formatAddress(holder.address)} on ${chainConfig.explorerName}`}
                         className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-slate-700 text-slate-400 transition hover:border-cyan-400/60 hover:text-cyan-100"
-                        href={getAddressExplorerUrl(data.chain, holder.id)}
+                        href={getAddressExplorerUrl(data.chain, holder.address)}
                         rel="noreferrer"
                         target="_blank"
                         title={`Open on ${chainConfig.explorerName}`}
@@ -141,21 +150,16 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
                         <ExternalLink size={14} aria-hidden="true" />
                       </a>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500">{holder.label}</p>
+                    <p className="mt-1 text-xs text-slate-500">{formatAddress(holder.address)}</p>
                   </div>
                   <div>
-                    <p className="font-mono text-white">{holder.listings.length} listed NFTs</p>
-                    <p className="mt-1 text-xs text-slate-500">{formatPercent(listedShare)} of listed NFTs</p>
+                    <p className="font-mono text-white">{formatNumber(holder.quantity, 0)} NFTs</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {usingHolderApi ? "indexed ownership" : "active OpenSea listings"}
+                    </p>
                   </div>
-                  <span className="font-mono text-cyan-100">
-                    <EthUsdValue
-                      ethUsd={ethUsd}
-                      label="Holder listed value"
-                      symbol={data.nativeCurrency.symbol}
-                      value={sumEth(holder.listings)}
-                    />
-                  </span>
-                  <span className="font-mono text-slate-300">{formatPercent(supplyShare)}</span>
+                  <span className="font-mono text-cyan-100">{formatNumber(listedCount, 0)}</span>
+                  <span className="font-mono text-slate-300">{formatPercent(holder.supplyShare)}</span>
                 </div>
               );
             })
@@ -167,12 +171,12 @@ export function HolderAnalysisCard({ data, ethUsd }: HolderAnalysisCardProps) {
         </div>
       </div>
 
-      {topHolders.length > holdersPerPage ? (
+      {rows.length > holdersPerPage ? (
         <div className="holder-ledger__pagination">
           <p className="text-sm text-slate-400">
             Showing {formatNumber((activePage - 1) * holdersPerPage + 1, 0)}-
-            {formatNumber(Math.min(activePage * holdersPerPage, topHolders.length), 0)} of{" "}
-            {formatNumber(topHolders.length, 0)} listed wallets
+            {formatNumber(Math.min(activePage * holdersPerPage, rows.length), 0)} of{" "}
+            {formatNumber(rows.length, 0)} {usingHolderApi ? "indexed holders" : "listed wallets"}
           </p>
           <div className="flex max-w-full gap-2 overflow-x-auto pb-1">
             {Array.from({ length: totalPages }).map((_, index) => {

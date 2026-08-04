@@ -1,5 +1,13 @@
 [
   {
+    "date": "2026-08-04",
+    "scope": "app-refinement",
+    "macrostructure": "20 Ecosystem Index",
+    "theme": "Exchange Terminal",
+    "enrichment": "verified holder and listing charts",
+    "brief": "Collection search and capital-to-target depth refinement"
+  },
+  {
     "date": "2026-08-02",
     "scope": "app",
     "macrostructure": "20 Ecosystem Index",

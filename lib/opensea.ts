@@ -3,6 +3,8 @@ import { OPENSEA_REFRESH_POLICY } from "@/lib/refresh";
 const OPENSEA_BASE_URL = "https://api.opensea.io/api/v2";
 const PAGE_LIMIT = 200;
 const MAX_PAGES = 100;
+const HOLDER_PAGE_LIMIT = 100;
+const MAX_HOLDER_PAGES = 20;
 
 export class OpenSeaApiError extends Error {
   status: number;
@@ -63,7 +65,10 @@ async function fetchOpenSea<T>(path: string): Promise<T> {
     }
 
     if (response.status === 401 || response.status === 403) {
-      throw new OpenSeaApiError("OpenSea rejected the API key.", response.status);
+      throw new OpenSeaApiError(
+        "OpenSea data access needs a server credential refresh.",
+        503,
+      );
     }
 
     throw new OpenSeaApiError(`OpenSea request failed with status ${response.status}.`, response.status);
@@ -126,6 +131,48 @@ export function fetchTrendingCollections(limit = 20) {
     timeframe: "one_day",
   });
   return fetchOpenSea<unknown>(`/collections/trending?${params.toString()}`);
+}
+
+export function searchCollections(query: string, limit = 8) {
+  const params = new URLSearchParams({
+    asset_types: "collection",
+    limit: String(Math.min(Math.max(limit, 1), 20)),
+    query,
+  });
+  params.append("chains", "ethereum");
+  params.append("chains", "ape_chain");
+
+  return fetchOpenSea<unknown>(`/search?${params.toString()}`);
+}
+
+export async function fetchCollectionHolders(slug: string) {
+  const holders: unknown[] = [];
+  let cursor: string | null = null;
+  let page = 0;
+
+  do {
+    const params = new URLSearchParams({
+      limit: String(HOLDER_PAGE_LIMIT),
+      sort_direction: "desc",
+    });
+
+    if (cursor) {
+      params.set("cursor", cursor);
+    }
+
+    const payload = await fetchOpenSea<unknown>(
+      `/collections/${encodeURIComponent(slug)}/holders?${params.toString()}`,
+    );
+
+    holders.push(...readArrayPayload(payload, "holders"));
+    cursor = readNextCursor(payload);
+    page += 1;
+  } while (cursor && page < MAX_HOLDER_PAGES);
+
+  return {
+    complete: !cursor,
+    holders,
+  };
 }
 
 export async function fetchAllListings(slug: string) {

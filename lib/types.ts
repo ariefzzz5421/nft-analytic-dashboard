@@ -34,6 +34,26 @@ export type ListingDistributionBucket = {
   totalEth: number;
 };
 
+export type CollectionHolder = {
+  address: string;
+  quantity: number;
+  supplyShare: number | null;
+};
+
+export type HolderDistributionBucket = {
+  bucket: string;
+  holders: number;
+  nfts: number;
+};
+
+export type HolderAnalysisData = {
+  complete: boolean;
+  distribution: HolderDistributionBucket[];
+  fetchedHolders: number;
+  topHolders: CollectionHolder[];
+  totalHolders: number | null;
+};
+
 export type CollectionSummaryData = {
   creator: {
     address: string | null;
@@ -145,6 +165,11 @@ export type CollectionDiscoveryResponse = {
   warnings: string[];
 };
 
+export type CollectionSearchResponse = {
+  results: MarketCollection[];
+  source: "opensea";
+};
+
 export type SweepApiResponse = {
   chain: SupportedChain;
   slug: string;
@@ -157,6 +182,7 @@ export type SweepApiResponse = {
   refreshPolicy: OpenSeaRefreshPolicy;
   collection: CollectionSummaryData;
   sweepLadder: SweepLadderRow[];
+  holderAnalysis: HolderAnalysisData;
   listingDistribution: ListingDistributionBucket[];
   risk: RiskSummary;
   sanityWarnings: string[];
